@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap') layer(base);
+@import url('https://cdn.lineicons.com/5.1/line/lineicons.css') layer(base);
+
+@layer base {
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: 'Noto Sans Thai', ui-sans-serif, sans-serif;
+        font-weight: 700;
+        font-style: normal;
+    }
+}
+
+
+.headding-font {
+    font-family: 'Noto Sans Thai', ui-sans-serif, sans-serif;
+    font-weight: 700;
+    font-style: normal;
+}
