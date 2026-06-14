@@ -69,7 +69,7 @@ class MenuHelper
                 'icon' => 'apartment',
                 'name' => 'ทรัพย์สิน',
                 'subItems' => [
-                    ['name' => 'ประเภทของทรัพย์สิน', 'path' => '/line-chart', 'pro' => false],
+                    ['name' => 'ประเภทของทรัพย์สิน', 'path' => route('propertyType.index', absolute: false), 'pro' => false],
                     ['name' => 'โซน', 'path' => '/bar-chart', 'pro' => false],
                     ['name' => 'สิ่งอำนวยความสะดวก', 'path' => '/line-chart', 'pro' => false],
                     ['name' => 'สถานที่ใกล้เคียง', 'path' => '/line-chart', 'pro' => false],
@@ -78,8 +78,9 @@ class MenuHelper
             [
                 'icon' => 'users',
                 'name' => 'รายชื่อตัวแทนขาย',
-                'path' => route('propertyRequest.index', ['type' => 'buy']),
+                'path' => route('user.index', absolute: false),
             ],
+
             [
                 'icon' => 'book',
                 'name' => 'บทความ',

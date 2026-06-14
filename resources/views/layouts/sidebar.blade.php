@@ -73,7 +73,7 @@ $menuGroups = MenuHelper::getMenuGroups();
         'justify-start'">
         <a href="{{ route('dashboard') }}">
             <img x-show="$store.sidebar.isExpanded || $store.sidebar.isHovered || $store.sidebar.isMobileOpen" class="dark:hidden" src="/images/logo/logo.png" alt="Logo" width="150" height="40" />
-            <img x-show="$store.sidebar.isExpanded || $store.sidebar.isHovered || $store.sidebar.isMobileOpen" class="hidden" src="/images/logo/logo-dark.png" alt="Logo" width="150" height="40" />
+            <img x-show="$store.sidebar.isExpanded || $store.sidebar.isHovered || $store.sidebar.isMobileOpen" class="hidden" src="/images/logo/auth-logo.png" alt="Logo" width="150" height="40" />
             <img x-show="!$store.sidebar.isExpanded && !$store.sidebar.isHovered && !$store.sidebar.isMobileOpen" src="/images/logo/logo-icon.svg" alt="Logo" width="32" height="32" />
 
         </a>

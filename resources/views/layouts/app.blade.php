@@ -10,14 +10,14 @@
 
     @vite(['resources/css/app.css', 'resources/css/custom-app.css', 'resources/js/app.js'])
 
+    @stack('styles')
+
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.store('theme', {
                 init() {
                     const savedTheme = localStorage.getItem('theme');
-                    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' :
-                        'light';
-                    this.theme = savedTheme || systemTheme;
+                    this.theme = savedTheme || 'light';
                     this.updateTheme();
                 }
                 , theme: 'light'
@@ -28,13 +28,13 @@
                 }
                 , updateTheme() {
                     const html = document.documentElement;
-                    const body = document.body;
+
                     if (this.theme === 'dark') {
                         html.classList.add('dark');
-                        body.classList.add('dark', 'bg-gray-900');
+                        document.body?.classList.add('dark', 'bg-gray-900');
                     } else {
                         html.classList.remove('dark');
-                        body.classList.remove('dark', 'bg-gray-900');
+                        document.body?.classList.remove('dark', 'bg-gray-900');
                     }
                 }
             });
@@ -63,6 +63,57 @@
                     }
                 }
             });
+
+            Alpine.store('activeAgent', {
+                modalOpen: false,
+                required: false,
+                open() {
+                    this.required = false;
+                    this.modalOpen = true;
+                },
+                close() {
+                    if (! this.required) {
+                        this.modalOpen = false;
+                    }
+                },
+                setRequired(value) {
+                    this.required = value;
+                    if (value) {
+                        this.modalOpen = true;
+                    }
+                }
+            });
+
+            Alpine.store('notify', {
+                items: [],
+                show(variant, message, duration = 4000) {
+                    const id = Date.now() + Math.random();
+                    const item = { id, variant, message, visible: true };
+
+                    this.items.push(item);
+
+                    setTimeout(() => this.dismiss(id), duration);
+                },
+                success(message) {
+                    this.show('success', message);
+                },
+                error(message) {
+                    this.show('error', message);
+                },
+                dismiss(id) {
+                    const item = this.items.find((entry) => entry.id === id);
+
+                    if (! item) {
+                        return;
+                    }
+
+                    item.visible = false;
+
+                    setTimeout(() => {
+                        this.items = this.items.filter((entry) => entry.id !== id);
+                    }, 200);
+                },
+            });
         });
 
     </script>
@@ -70,14 +121,13 @@
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme');
-            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            const theme = savedTheme || systemTheme;
+            const theme = savedTheme || 'light';
+            const html = document.documentElement;
+
             if (theme === 'dark') {
-                document.documentElement.classList.add('dark');
-                document.body.classList.add('dark', 'bg-gray-900');
+                html.classList.add('dark');
             } else {
-                document.documentElement.classList.remove('dark');
-                document.body.classList.remove('dark', 'bg-gray-900');
+                html.classList.remove('dark');
             }
         })();
 
@@ -97,6 +147,11 @@
     window.addEventListener('resize', checkMobile);">
 
     <x-common.preloader />
+    <x-common.toast-container />
+
+    @auth
+        <x-workspace.agent-selector-modal />
+    @endauth
 
     <div class="min-h-screen xl:flex">
         @include('layouts.backdrop')
@@ -115,8 +170,7 @@
         </div>
     </div>
 
+    @stack('scripts')
 </body>
-
-@stack('scripts')
 
 </html>

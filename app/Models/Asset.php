@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class Asset
- * 
+ *
  * @property string $id
  * @property string $code
  * @property string $name
@@ -63,7 +63,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
- * 
+ *
  * @property Address|null $address
  * @property User $user
  * @property AssetType $asset_type
@@ -75,132 +75,139 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Asset extends Model
 {
-	use SoftDeletes;
-	use HasUuids;
-	protected $table = 'assets';
-	public $incrementing = false;
+    use SoftDeletes;
+    use HasUuids;
+    protected $table = 'assets';
+    public $incrementing = false;
 
-	protected $casts = [
-		'created' => 'datetime',
-		'floor_total' => 'float',
-		'bedroom' => 'int',
-		'bathroom' => 'int',
-		'kitchen_room' => 'int',
-		'reception_room' => 'int',
-		'dining_room' => 'int',
-		'maid_room' => 'int',
-		'parking' => 'int',
-		'area_rai' => 'float',
-		'area_ngan' => 'float',
-		'area_wah' => 'float',
-		'area_meter' => 'float',
-		'price_per_wah' => 'float',
-		'price_amounnt' => 'float',
-		'area_width' => 'float',
-		'area_long' => 'float',
-		'price_amounnt_lower' => 'float',
-		'floor' => 'float',
-		'price_rent' => 'float'
-	];
+    protected $casts = [
+        'created' => 'datetime',
+        'floor_total' => 'float',
+        'bedroom' => 'int',
+        'bathroom' => 'int',
+        'kitchen_room' => 'int',
+        'reception_room' => 'int',
+        'dining_room' => 'int',
+        'maid_room' => 'int',
+        'parking' => 'int',
+        'area_rai' => 'float',
+        'area_ngan' => 'float',
+        'area_wah' => 'float',
+        'area_meter' => 'float',
+        'price_per_wah' => 'float',
+        'price_amounnt' => 'float',
+        'area_width' => 'float',
+        'area_long' => 'float',
+        'price_amounnt_lower' => 'float',
+        'floor' => 'float',
+        'price_rent' => 'float'
+    ];
 
-	protected $fillable = [
-		'code',
-		'name',
-		'description',
-		'asset_type_id',
-		'asset_type_des',
-		'user_id',
-		'created',
-		'createdby',
-		'floor_total',
-		'bedroom',
-		'bathroom',
-		'kitchen_room',
-		'reception_room',
-		'dining_room',
-		'maid_room',
-		'parking',
-		'area_rai',
-		'area_ngan',
-		'area_wah',
-		'area_meter',
-		'price_per_wah',
-		'price_amounnt',
-		'option',
-		'address_id',
-		'zone_id',
-		'latitude',
-		'longitude',
-		'isspecial_marketprice',
-		'isspecial_appraised',
-		'area_width',
-		'area_long',
-		'iscovering',
-		'isdweller',
-		'direction',
-		'price_amounnt_lower',
-		'issale',
-		'isrent',
-		'issalerent',
-		'issellout',
-		'issaledown',
-		'floor',
-		'price_rent',
-		'youtube_link'
-	];
+    protected $fillable = [
+        'code',
+        'name',
+        'description',
+        'asset_type_id',
+        'asset_type_des',
+        'user_id',
+        'created',
+        'createdby',
+        'floor_total',
+        'bedroom',
+        'bathroom',
+        'kitchen_room',
+        'reception_room',
+        'dining_room',
+        'maid_room',
+        'parking',
+        'area_rai',
+        'area_ngan',
+        'area_wah',
+        'area_meter',
+        'price_per_wah',
+        'price_amounnt',
+        'option',
+        'address_id',
+        'zone_id',
+        'latitude',
+        'longitude',
+        'isspecial_marketprice',
+        'isspecial_appraised',
+        'area_width',
+        'area_long',
+        'iscovering',
+        'isdweller',
+        'direction',
+        'price_amounnt_lower',
+        'issale',
+        'isrent',
+        'issalerent',
+        'issellout',
+        'issaledown',
+        'floor',
+        'price_rent',
+        'youtube_link',
+        'agent_id',
+        'isactive'
+    ];
 
-	public function address()
-	{
-		return $this->belongsTo(Address::class);
-	}
+    public function address()
+    {
+        return $this->belongsTo(Address::class);
+    }
 
-	public function user()
-	{
-		return $this->belongsTo(User::class);
-	}
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
-	public function asset_type()
-	{
-		return $this->belongsTo(AssetType::class);
-	}
+    public function asset_type()
+    {
+        return $this->belongsTo(AssetType::class);
+    }
 
-	public function zone()
-	{
-		return $this->belongsTo(Zone::class);
-	}
+    public function zone()
+    {
+        return $this->belongsTo(Zone::class);
+    }
 
-	public function images()
-	{
-		return $this->belongsToMany(Image::class, 'asset_images')
-					->withPivot('id', 'isdefault', 'created', 'seq', 'deleted_at')
-					->withTimestamps();
-	}
+    public function agent()
+    {
+        return $this->belongsTo(Agent::class);
+    }
 
-	public function options()
-	{
-		return $this->belongsToMany(Option::class, 'asset_options')
-					->withPivot('id', 'deleted_at')
-					->withTimestamps();
-	}
+    public function images()
+    {
+        return $this->belongsToMany(Image::class, 'asset_images')
+            ->withPivot('id', 'isdefault', 'created', 'seq', 'deleted_at')
+            ->withTimestamps();
+    }
 
-	public function scopeFiltered(Builder $query, array $filters): Builder
-	{
-		return $query
-			->when($filters['code'] !== '', fn (Builder $builder) => $builder->where('code', 'like', '%'.$filters['code'].'%'))
-			->when($filters['name'] !== '', function (Builder $builder) use ($filters) {
-				$pattern = str_contains($filters['name'], '%')
-					? $filters['name']
-					: '%'.$filters['name'].'%';
+    public function options()
+    {
+        return $this->belongsToMany(Option::class, 'asset_options')
+            ->withPivot('id', 'deleted_at')
+            ->withTimestamps();
+    }
 
-				$builder->where('name', 'like', $pattern);
-			})
-			->when($filters['asset_type_id'] !== '', fn (Builder $builder) => $builder->where('asset_type_id', $filters['asset_type_id']))
-			->when($filters['zone_id'] !== '', fn (Builder $builder) => $builder->where('zone_id', $filters['zone_id']))
-			->when($filters['user_id'] !== '', fn (Builder $builder) => $builder->where('user_id', $filters['user_id']));
-	}
+    public function scopeFiltered(Builder $query, array $filters): Builder
+    {
+        return $query
+            ->when($filters['code'] !== '', fn(Builder $builder) => $builder->where('code', 'like', '%' . $filters['code'] . '%'))
+            ->when($filters['name'] !== '', function (Builder $builder) use ($filters) {
+                $pattern = str_contains($filters['name'], '%')
+                    ? $filters['name']
+                    : '%' . $filters['name'] . '%';
 
-	public function scopeLatestFirst(Builder $query): Builder
-	{
-		return $query->orderByDesc('created')->orderByDesc('created_at');
-	}
+                $builder->where('name', 'like', $pattern);
+            })
+            ->when($filters['asset_type_id'] !== '', fn(Builder $builder) => $builder->where('asset_type_id', $filters['asset_type_id']))
+            ->when($filters['zone_id'] !== '', fn(Builder $builder) => $builder->where('zone_id', $filters['zone_id']))
+            ->when($filters['user_id'] !== '', fn(Builder $builder) => $builder->where('user_id', $filters['user_id']));
+    }
+
+    public function scopeLatestFirst(Builder $query): Builder
+    {
+        return $query->orderByDesc('created')->orderByDesc('created_at');
+    }
 }

@@ -6,6 +6,7 @@
 
 namespace App\Models;
 
+use App\Services\ImageUploadService;
 use Carbon\Carbon;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -52,6 +53,8 @@ use Illuminate\Notifications\Notifiable;
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
+    public const PIC_DIRECTORY = 'upload/user';
+
     use HasUuids;
     use MustVerifyEmailTrait;
     use Notifiable;
@@ -139,7 +142,32 @@ class User extends Authenticatable implements MustVerifyEmail
 
 		$path = $this->useimages->first()?->image?->path;
 
-		return Image::resolveLegacyUrl($path);
+		if (blank($path)) {
+			return null;
+		}
+
+		if (str_starts_with($path, self::PIC_DIRECTORY.'/')) {
+			return app(ImageUploadService::class)->url(basename($path), self::PIC_DIRECTORY);
+		}
+
+		$localUrl = app(ImageUploadService::class)->url(basename($path), self::PIC_DIRECTORY);
+
+		return $localUrl ?? Image::resolveLegacyUrl($path);
+	}
+
+	public function isInUse(): bool
+	{
+		return $this->assets()->exists();
+	}
+
+	public function isActive(): bool
+	{
+		return $this->isactive === 'Y';
+	}
+
+	public function isSeller(): bool
+	{
+		return $this->isseller === 'Y';
 	}
 
     public function addresses()

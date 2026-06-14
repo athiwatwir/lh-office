@@ -30,7 +30,7 @@
             <!-- Logo (mobile only) -->
             <a href="{{ route('dashboard') }}" class="xl:hidden">
                 <img class="dark:hidden" src="/images/logo/logo.png" alt="Logo" />
-                <img class="hidden" src="/images/logo/logo-dark.png" alt="Logo" />
+                <img class="hidden" src="/images/logo/auth-logo.png" alt="Logo" />
             </a>
 
             <!-- Application Menu Toggle (mobile only) -->
@@ -47,6 +47,7 @@
         <!-- Application Menu (mobile) and Right Side Actions (desktop) -->
         <div :class="isApplicationMenuOpen ? 'flex' : 'hidden'" class="items-center justify-between w-full gap-4 px-5 py-4 xl:flex shadow-theme-md xl:justify-end xl:px-0 xl:shadow-none">
 
+            <x-workspace.active-agent-display />
 
             <!-- User Dropdown -->
             <x-header.user-dropdown />

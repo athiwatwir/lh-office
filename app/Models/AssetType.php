@@ -6,6 +6,7 @@
 
 namespace App\Models;
 
+use App\Services\ImageUploadService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -32,6 +33,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class AssetType extends Model
 {
+	public const PIC_DIRECTORY = 'upload/property-type';
+
 	use SoftDeletes;
 	use HasUuids;
 	protected $table = 'asset_types';
@@ -58,5 +61,21 @@ class AssetType extends Model
 	public function customer_assets()
 	{
 		return $this->hasMany(CustomerAsset::class);
+	}
+
+	public function isInUse(): bool
+	{
+		return $this->assets()->exists() || $this->customer_assets()->exists();
+	}
+
+	public function getPicUrlAttribute(): ?string
+	{
+		if (blank($this->pic)) {
+			return null;
+		}
+
+		$localUrl = app(ImageUploadService::class)->url($this->pic, self::PIC_DIRECTORY);
+
+		return $localUrl ?? Image::resolveLegacyUrl($this->pic);
 	}
 }
