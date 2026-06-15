@@ -76,6 +76,43 @@ class ImageUploadService
         return $newFilename;
     }
 
+    /**
+     * Upload an image with an optional GD processor (e.g. watermark) before saving.
+     *
+     * @param  callable(GdImage): GdImage|null  $processor
+     */
+    public function storeWithProcessor(
+        UploadedFile $file,
+        ImageUploadOptions $options,
+        ?callable $processor = null,
+    ): string {
+        $this->assertWebpSupported();
+
+        $image = $this->createImageResource($file);
+        $image = $this->applyResize($image, $options);
+
+        if ($processor !== null) {
+            $image = $processor($image) ?? $image;
+        }
+
+        $this->preserveAlpha($image);
+
+        $directory = $this->normalizeDirectory($options->directory);
+        File::ensureDirectoryExists($directory);
+
+        $filename = $this->generateFilename();
+        $path = $directory.DIRECTORY_SEPARATOR.$filename;
+
+        if (! imagewebp($image, $path, $this->normalizeQuality($options->quality))) {
+            imagedestroy($image);
+            throw new RuntimeException('ไม่สามารถบันทึกไฟล์รูปภาพได้');
+        }
+
+        imagedestroy($image);
+
+        return $filename;
+    }
+
     private function assertWebpSupported(): void
     {
         if (! function_exists('imagewebp')) {

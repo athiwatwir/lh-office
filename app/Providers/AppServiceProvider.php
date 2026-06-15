@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Agent;
 use App\Services\ActiveAgentService;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Auth;
@@ -34,6 +35,9 @@ class AppServiceProvider extends ServiceProvider
             $view->with([
                 'activeAgent' => $service->agent(),
                 'requiresAgentSelection' => ! $service->hasAgent(),
+                'workspaceAgents' => Agent::query()
+                    ->orderBy('name')
+                    ->get(['id', 'name', 'code', 'logo']),
             ]);
         });
 

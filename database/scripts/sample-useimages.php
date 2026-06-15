@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 $rows = DB::table('useimages')
     ->join('images', 'images.id', '=', 'useimages.image_id')
-    ->select('images.path', 'images.type', 'useimages.user_id')
+    ->select('images.img_path', 'images.type', 'useimages.user_id')
     ->limit(5)
     ->get();
 

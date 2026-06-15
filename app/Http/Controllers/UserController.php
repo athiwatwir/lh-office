@@ -31,7 +31,7 @@ class UserController extends Controller
             ->paginate(20);
 
         return view('pages.user.index', [
-            'title' => 'รายชื่อตัวแทนขาย',
+            'title' => 'ตัวแทนขาย/ผู้ใช้งานระบบ',
             'data' => $data,
         ]);
     }
@@ -39,7 +39,7 @@ class UserController extends Controller
     public function create(): View
     {
         return view('pages.user.create', [
-            'title' => 'เพิ่มตัวแทนขาย',
+            'title' => 'เพิ่มตัวแทนขาย/ผู้ใช้งานระบบ',
             'item' => new User([
                 'isactive' => 'Y',
                 'isseller' => 'Y',
@@ -63,7 +63,7 @@ class UserController extends Controller
 
         return redirect()
             ->route('user.index')
-            ->with('success', 'เพิ่มตัวแทนขายเรียบร้อยแล้ว');
+            ->with('success', 'เพิ่มตัวแทนขาย/ผู้ใช้งานระบบเรียบร้อยแล้ว');
     }
 
     public function edit(string $user): View
@@ -77,7 +77,7 @@ class UserController extends Controller
             ->findOrFail($user);
 
         return view('pages.user.edit', [
-            'title' => 'แก้ไขตัวแทนขาย',
+            'title' => 'แก้ไขตัวแทนขาย/ผู้ใช้งานระบบ',
             'item' => $item,
         ]);
     }
@@ -97,7 +97,7 @@ class UserController extends Controller
 
         return redirect()
             ->route('user.index')
-            ->with('success', 'บันทึกข้อมูลตัวแทนขายเรียบร้อยแล้ว');
+            ->with('success', 'บันทึกข้อมูลตัวแทนขาย/ผู้ใช้งานระบบเรียบร้อยแล้ว');
     }
 
     public function updatePassword(UserPasswordRequest $request, string $user): RedirectResponse
@@ -135,6 +135,6 @@ class UserController extends Controller
 
         return redirect()
             ->route('user.index')
-            ->with('success', 'ลบตัวแทนขายเรียบร้อยแล้ว');
+            ->with('success', 'ลบตัวแทนขาย/ผู้ใช้งานระบบเรียบร้อยแล้ว');
     }
 }

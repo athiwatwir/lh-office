@@ -54,8 +54,7 @@
     </script>
 </head>
 
-<body x-data="{ loaded: true }" x-init="window.addEventListener('DOMContentLoaded', () => { setTimeout(() => loaded = false, 350) })"
-    class="min-h-screen">
+<body class="min-h-screen">
 
     <x-common.preloader />
 

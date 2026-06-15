@@ -21,7 +21,7 @@ class UserImageService
         $image = Image::query()->create([
             'name' => $filename,
             'type' => 'user',
-            'path' => $path,
+            'img_path' => $path,
             'created' => now(),
         ]);
 
@@ -49,7 +49,7 @@ class UserImageService
             return;
         }
 
-        $this->deleteManagedFile($useimage->image->path);
+        $this->deleteManagedFile($useimage->image->img_path);
         $useimage->image->delete();
         $useimage->delete();
     }

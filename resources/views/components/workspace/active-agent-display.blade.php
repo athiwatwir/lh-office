@@ -1,3 +1,11 @@
+@props([
+    'activeAgent' => null,
+])
+
+@php
+    $activeAgent ??= app(\App\Services\ActiveAgentService::class)->agent();
+@endphp
+
 @if ($activeAgent)
     <div class="flex items-center gap-3">
         <button

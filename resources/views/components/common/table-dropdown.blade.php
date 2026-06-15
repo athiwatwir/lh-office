@@ -1,3 +1,7 @@
+@props([
+    'menuWidth' => 'w-40',
+])
+
 <div x-data="{
     isOpen: false,
     popperInstance: null,
@@ -30,7 +34,7 @@
     </div>
 
     <div class="z-50 fixed" x-ref="content">
-        <div x-show="isOpen" x-cloak class="p-2 bg-white border border-gray-200 rounded-2xl shadow-lg w-40">
+        <div x-show="isOpen" x-cloak class="p-2 bg-white border border-gray-200 rounded-2xl shadow-lg {{ $menuWidth }}">
             <div class="space-y-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
                 {{ $content }}
             </div>

@@ -1,6 +1,7 @@
 @props([
     'agents',
     'selected' => '',
+    'withPhotos' => true,
 ])
 
 @php
@@ -8,7 +9,7 @@
         'id' => $agent->id,
         'name' => $agent->name,
         'usercode' => $agent->usercode,
-        'photo' => $agent->profile_image_url,
+        'photo' => $withPhotos ? $agent->profile_image_url : null,
     ])->values();
 @endphp
 
@@ -46,14 +47,16 @@
         class="flex h-11 w-full items-center justify-between gap-3 rounded-lg border border-gray-300 bg-white px-3 text-left text-sm text-gray-800 shadow-theme-xs transition hover:border-brand-300 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10"
     >
         <span class="flex min-w-0 items-center gap-3">
-            <span class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100">
-                <img
-                    x-show="selectedAgent?.photo"
-                    :src="selectedAgent?.photo"
-                    alt=""
-                    class="h-full w-full object-cover"
-                >
-            </span>
+            @if ($withPhotos)
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100">
+                    <img
+                        x-show="selectedAgent?.photo"
+                        :src="selectedAgent?.photo"
+                        alt=""
+                        class="h-full w-full object-cover"
+                    >
+                </span>
+            @endif
 
             <span class="truncate" x-text="selectedAgent ? (selectedAgent.name + (selectedAgent.usercode ? ' (' + selectedAgent.usercode + ')' : '')) : 'เลือกตัวแทน'"></span>
         </span>
@@ -110,7 +113,9 @@
                     class="mb-2 flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition hover:border-gray-200 hover:bg-gray-50"
                     :class="selectedId === '' ? 'border-brand-200 bg-brand-50' : ''"
                 >
-                    <span class="flex h-12 w-12 shrink-0 rounded-full bg-gray-100"></span>
+                    @if ($withPhotos)
+                        <span class="flex h-12 w-12 shrink-0 rounded-full bg-gray-100"></span>
+                    @endif
                     <span class="text-sm font-medium text-gray-800">ทั้งหมด</span>
                 </button>
 
@@ -121,14 +126,16 @@
                         class="flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition hover:border-gray-200 hover:bg-gray-50"
                         :class="selectedId === agent.id ? 'border-brand-200 bg-brand-50' : ''"
                     >
-                        <span class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100">
-                            <img
-                                x-show="agent.photo"
-                                :src="agent.photo"
-                                :alt="agent.name"
-                                class="h-full w-full object-cover"
-                            >
-                        </span>
+                        @if ($withPhotos)
+                            <span class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100">
+                                <img
+                                    x-show="agent.photo"
+                                    :src="agent.photo"
+                                    :alt="agent.name"
+                                    class="h-full w-full object-cover"
+                                >
+                            </span>
+                        @endif
 
                         <span class="min-w-0">
                             <span class="block truncate text-sm font-medium text-gray-800" x-text="agent.name"></span>

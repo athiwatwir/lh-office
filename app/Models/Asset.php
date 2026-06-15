@@ -77,6 +77,14 @@ class Asset extends Model
 {
     use SoftDeletes;
     use HasUuids;
+
+    public const PIC_DIRECTORY = 'upload/property';
+
+    public static function picDirectory(string $assetId): string
+    {
+        return self::PIC_DIRECTORY . '/' . $assetId;
+    }
+
     protected $table = 'assets';
     public $incrementing = false;
 
@@ -183,6 +191,11 @@ class Asset extends Model
             ->withTimestamps();
     }
 
+    public function asset_images()
+    {
+        return $this->hasMany(AssetImage::class)->orderBy('seq');
+    }
+
     public function options()
     {
         return $this->belongsToMany(Option::class, 'asset_options')
@@ -209,5 +222,29 @@ class Asset extends Model
     public function scopeLatestFirst(Builder $query): Builder
     {
         return $query->orderByDesc('created')->orderByDesc('created_at');
+    }
+
+    public function scopeForList(Builder $query): Builder
+    {
+        return $query->select([
+            'id',
+            'code',
+            'name',
+            'asset_type_id',
+            'asset_type_des',
+            'user_id',
+            'zone_id',
+            'agent_id',
+            'price_amounnt',
+            'price_rent',
+            'isactive',
+            'created',
+            'created_at',
+            'issale',
+            'isrent',
+            'issalerent',
+            'issellout',
+            'issaledown',
+        ]);
     }
 }

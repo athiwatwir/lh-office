@@ -140,7 +140,7 @@ class User extends Authenticatable implements MustVerifyEmail
 			]);
 		}
 
-		$path = $this->useimages->first()?->image?->path;
+		$path = $this->useimages->first()?->image?->img_path;
 
 		if (blank($path)) {
 			return null;

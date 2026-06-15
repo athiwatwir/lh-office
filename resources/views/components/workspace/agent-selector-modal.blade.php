@@ -1,4 +1,19 @@
+@props([
+    'activeAgent' => null,
+    'requiresSelection' => null,
+    'agents' => null,
+])
+
 @php
+    use App\Models\Agent;
+    use App\Services\ActiveAgentService;
+
+    $service = app(ActiveAgentService::class);
+    $activeAgent ??= $service->agent();
+    $requiresSelection ??= ! $service->hasAgent();
+    $agents ??= view()->shared('workspaceAgents')
+        ?? Agent::query()->orderBy('name')->get(['id', 'name', 'code', 'logo']);
+
     $agentsPayload = $agents->map(fn ($agent) => [
         'id' => $agent->id,
         'name' => $agent->name,

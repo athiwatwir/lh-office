@@ -1,4 +1,24 @@
+@props([
+    'name' => '',
+    'id' => '',
+    'label' => null,
+    'value' => null,
+    'uploadUrl' => null,
+    'height' => 360,
+    'required' => false,
+    'placeholder' => 'พิมพ์รายละเอียด...',
+])
+
 @php
+    use Illuminate\Support\Str;
+
+    if ($id === '') {
+        $id = $name;
+    }
+
+    $editorId = 'hs-editor-' . Str::slug($id, '-');
+    $uploadUrl ??= route('editor.upload-image');
+
     $toolbarBtn = 'inline-flex size-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 focus:outline-none focus:bg-gray-100';
     $emojis = ['😀', '😊', '😍', '🥰', '😎', '🤩', '😢', '😭', '😡', '👍', '👎', '🙏', '👏', '💪', '❤️', '🔥', '⭐', '✅', '❌', '⚠️', '🏠', '🏢', '📍', '📞', '💰', '📷', '🎉', '🌟'];
 @endphp

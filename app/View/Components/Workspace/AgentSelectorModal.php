@@ -22,8 +22,11 @@ class AgentSelectorModal extends Component
 
     public function render(): View
     {
+        $agents = view()->shared('workspaceAgents')
+            ?? Agent::query()->orderBy('name')->get(['id', 'name', 'code', 'logo']);
+
         return view('components.workspace.agent-selector-modal', [
-            'agents' => Agent::query()->orderBy('name')->get(),
+            'agents' => $agents,
         ]);
     }
 }

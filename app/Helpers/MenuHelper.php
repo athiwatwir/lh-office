@@ -77,7 +77,7 @@ class MenuHelper
             ],
             [
                 'icon' => 'users',
-                'name' => 'รายชื่อตัวแทนขาย',
+                'name' => 'ตัวแทนขาย/ผู้ใช้งานระบบ',
                 'path' => route('user.index', absolute: false),
             ],
 

@@ -13,7 +13,7 @@ $user = auth()->user();
 }" @click.away="closeDropdown()">
     <button class="flex items-center text-gray-700 dark:text-gray-300" @click.prevent="toggleDropdown()" type="button">
         <span class="mr-3 overflow-hidden rounded-full h-11 w-11">
-            <img src="{{ asset('images/user/owner.png') }}" alt="{{ $user->name }}" />
+            <img src="{{ asset('images/user/owner.webp') }}" alt="{{ $user->name }}" />
         </span>
 
         <span class="block mr-1 font-medium text-theme-sm">{{ $user->name }}</span>

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\View\Components\Form;
+namespace App\View\Components\form;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;

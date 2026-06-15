@@ -101,8 +101,7 @@ $ynFields = [
 
     @include('pages.property.partials.address-section', ['item' => $item, 'inputClass' => $inputClass])
 
-
-
+    @include('pages.property.partials.images-section', ['item' => $item])
 
 </div>
 

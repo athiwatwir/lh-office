@@ -20,6 +20,8 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    // npm run dev = โหลด asset จาก Vite (port 5173) + HMR — ต้องรันคู่กับ php artisan serve
+    // ถ้ารันแค่ php artisan serve ให้ใช้ npm run build แทน (และ npm run dev:clean ถ้ามี public/hot ค้าง)
     server: {
         host: '127.0.0.1',
         port: 5173,
