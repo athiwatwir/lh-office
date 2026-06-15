@@ -22,6 +22,7 @@
 <div class="flex justify-end" x-data="{
         moveOpen: false,
         loading: false,
+        isRecommended: @js(($property->isrecommend ?? 'N') === 'Y'),
         agents: @js($agentsPayload),
         currentAgentId: @js($property->agent_id),
         get targetAgents() {
@@ -72,6 +73,47 @@
                 this.loading = false;
             }
         },
+        async toggleRecommend() {
+            if (this.loading) {
+                return;
+            }
+
+            const next = ! this.isRecommended;
+            const message = next
+                ? 'ตั้งทรัพย์สินนี้เป็นทรัพย์แนะนำ?'
+                : 'ยกเลิกทรัพย์แนะนำสำหรับทรัพย์สินนี้?';
+
+            if (! window.confirm(message)) {
+                return;
+            }
+
+            this.loading = true;
+
+            try {
+                const response = await fetch(@js(route('property.isrecommend.update', $property)), {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content ?? '',
+                    },
+                    body: JSON.stringify({ isrecommend: next }),
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (! response.ok) {
+                    throw new Error(data.message ?? 'อัปเดตทรัพย์แนะนำไม่สำเร็จ');
+                }
+
+                Alpine.store('notify').success(data.message ?? 'อัปเดตทรัพย์แนะนำเรียบร้อยแล้ว');
+                window.location.reload();
+            } catch (error) {
+                Alpine.store('notify').error(error.message ?? 'อัปเดตทรัพย์แนะนำไม่สำเร็จ');
+            } finally {
+                this.loading = false;
+            }
+        },
     }">
     <x-common.table-dropdown menu-width="min-w-44">
         <x-slot name="button">
@@ -87,6 +129,13 @@
                 <i class="lni lni-pencil text-base text-gray-500"></i>
                 แก้ไข
             </a>
+
+            <button type="button" @click="toggleRecommend()" :disabled="loading" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-theme-xs font-medium text-gray-700 hover:bg-gray-100" role="menuitem">
+                <span class="inline-flex text-base" :class="isRecommended ? 'text-warning-500' : 'text-gray-500'">
+                    <i class="lni lni-star-fat" aria-hidden="true"></i>
+                </span>
+                <span x-text="isRecommended ? 'ยกเลิกทรัพย์แนะนำ' : 'ตั้งเป็นทรัพย์แนะนำ'"></span>
+            </button>
 
             <button type="button" @click="openMove()" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-theme-xs font-medium text-gray-700 hover:bg-gray-100" role="menuitem">
                 <i class="lni lni-arrow-right text-base text-gray-500"></i>

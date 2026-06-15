@@ -2,47 +2,47 @@
 
 namespace App\Services;
 
+use App\Models\AssetType;
 use App\Models\Image;
-use App\Models\User;
 use Illuminate\Http\UploadedFile;
 
-class UserImageService
+class AssetTypeImageService
 {
     public function __construct(
         private readonly ImageUploadService $imageUpload,
     ) {}
 
-    public function attach(User $user, UploadedFile $file): void
+    public function attach(AssetType $assetType, UploadedFile $file): void
     {
         $filename = $this->imageUpload->store($file, $this->uploadOptions());
-        $path = User::PIC_DIRECTORY.'/'.$filename;
+        $path = AssetType::PIC_DIRECTORY.'/'.$filename;
 
         $image = Image::query()->create([
             'name' => $filename,
-            'type' => 'user',
+            'type' => 'property-type',
             'img_path' => $path,
             'created' => now(),
         ]);
 
-        $user->update(['image_id' => $image->id]);
+        $assetType->update(['image_id' => $image->id]);
     }
 
-    public function replace(User $user, UploadedFile $file): void
+    public function replace(AssetType $assetType, UploadedFile $file): void
     {
-        $this->deleteLocalProfileImage($user);
-        $this->attach($user, $file);
+        $this->deleteLocalImage($assetType);
+        $this->attach($assetType, $file);
     }
 
-    public function deleteLocalProfileImage(User $user): void
+    public function deleteLocalImage(AssetType $assetType): void
     {
-        $image = $user->image;
+        $image = $assetType->image;
 
         if ($image === null) {
             return;
         }
 
         $this->deleteManagedFile($image->img_path);
-        $user->update(['image_id' => null]);
+        $assetType->update(['image_id' => null]);
         $image->delete();
     }
 
@@ -52,22 +52,22 @@ class UserImageService
             return;
         }
 
-        $this->imageUpload->delete(basename($path), User::PIC_DIRECTORY);
+        $this->imageUpload->delete(basename($path), AssetType::PIC_DIRECTORY);
     }
 
     private function isManagedPath(string $path): bool
     {
-        return str_starts_with($path, User::PIC_DIRECTORY.'/')
-            || str_starts_with($path, '/'.User::PIC_DIRECTORY.'/');
+        return str_starts_with($path, AssetType::PIC_DIRECTORY.'/')
+            || str_starts_with($path, '/'.AssetType::PIC_DIRECTORY.'/');
     }
 
     private function uploadOptions(): ImageUploadOptions
     {
         return new ImageUploadOptions(
-            directory: User::PIC_DIRECTORY,
+            directory: AssetType::PIC_DIRECTORY,
             quality: 85,
-            maxWidth: 400,
-            maxHeight: 400,
+            maxWidth: 800,
+            maxHeight: 800,
         );
     }
 }

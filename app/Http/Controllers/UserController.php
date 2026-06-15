@@ -20,10 +20,7 @@ class UserController extends Controller
     public function index(): View
     {
         $data = User::query()
-            ->with([
-                'useimages' => fn($query) => $query->latest('created')->limit(1),
-                'useimages.image',
-            ])
+            ->with('image')
             ->withCount('assets')
             // ->where('isseller', 'Y')
             ->orderBy('firstname')
@@ -69,10 +66,7 @@ class UserController extends Controller
     public function edit(string $user): View
     {
         $item = User::query()
-            ->with([
-                'useimages' => fn($query) => $query->latest('created')->limit(1),
-                'useimages.image',
-            ])
+            ->with('image')
             ->withCount('assets')
             ->findOrFail($user);
 

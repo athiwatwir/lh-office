@@ -4,7 +4,4 @@ require __DIR__.'/../../vendor/autoload.php';
 $app = require __DIR__.'/../../bootstrap/app.php';
 $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
-use Illuminate\Support\Facades\DB;
-
-$rows = DB::table('asset_types')->select('name', 'image_id', 'seq')->limit(5)->get();
-print_r($rows->toArray());
+print_r(Illuminate\Support\Facades\DB::select('SHOW COLUMNS FROM images'));

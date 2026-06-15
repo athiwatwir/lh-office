@@ -1,6 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap') layer(base);
 @import url('https://cdn.lineicons.com/5.1/line/lineicons.css') layer(base);
 
+/* Lineicons render glyphs via ::before — inherit color from parent text utility */
+.lni::before {
+    color: currentColor;
+}
+
 @layer base {
 
     h1,

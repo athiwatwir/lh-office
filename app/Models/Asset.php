@@ -156,7 +156,9 @@ class Asset extends Model
         'price_rent',
         'youtube_link',
         'agent_id',
-        'isactive'
+        'isactive',
+        'isrecommend',
+        'view_count'
     ];
 
     public function address()
@@ -216,12 +218,18 @@ class Asset extends Model
             })
             ->when($filters['asset_type_id'] !== '', fn(Builder $builder) => $builder->where('asset_type_id', $filters['asset_type_id']))
             ->when($filters['zone_id'] !== '', fn(Builder $builder) => $builder->where('zone_id', $filters['zone_id']))
-            ->when($filters['user_id'] !== '', fn(Builder $builder) => $builder->where('user_id', $filters['user_id']));
+            ->when($filters['user_id'] !== '', fn(Builder $builder) => $builder->where('user_id', $filters['user_id']))
+            ->when($filters['recommend'], fn(Builder $builder) => $builder->where('isrecommend', 'Y'));
     }
 
     public function scopeLatestFirst(Builder $query): Builder
     {
         return $query->orderByDesc('created')->orderByDesc('created_at');
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('isactive', 'Y');
     }
 
     public function scopeForList(Builder $query): Builder
@@ -238,6 +246,7 @@ class Asset extends Model
             'price_amounnt',
             'price_rent',
             'isactive',
+            'isrecommend',
             'created',
             'created_at',
             'issale',

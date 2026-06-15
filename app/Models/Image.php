@@ -61,19 +61,27 @@ class Image extends Model
 
     public function getUrlAttribute(): ?string
     {
-        if (blank($this->img_path)) {
+        $storagePath = $this->img_path ?: ($this->attributes['path'] ?? null);
+
+        if (blank($storagePath)) {
             return null;
         }
 
-        if (str_starts_with($this->img_path, 'upload/')) {
-            return asset($this->img_path);
+        $normalized = ltrim($storagePath, '/');
+
+        if (str_starts_with($normalized, 'upload/')) {
+            if (is_file(public_path($normalized))) {
+                return asset($normalized);
+            }
+
+            return self::resolveLegacyUrl($storagePath);
         }
 
-        if (str_starts_with($this->img_path, '/upload/')) {
-            return asset(ltrim($this->img_path, '/'));
+        if (str_starts_with($storagePath, 'http://') || str_starts_with($storagePath, 'https://')) {
+            return $storagePath;
         }
 
-        return self::resolveLegacyUrl($this->img_path);
+        return self::resolveLegacyUrl($storagePath);
     }
 
     public static function resolveLegacyUrl(?string $path): ?string

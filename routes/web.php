@@ -20,6 +20,7 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard/api/summary', [DashboardController::class, 'summary'])->middleware(['auth', 'verified'])->name('dashboard.api.summary');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -41,6 +42,7 @@ Route::middleware('auth')->group(function () {
 
     Route::put('user/{user}/password', [UserController::class, 'updatePassword'])->name('user.password.update');
     Route::patch('property/{property}/isactive', [PropertyController::class, 'updateIsactive'])->name('property.isactive.update');
+    Route::patch('property/{property}/isrecommend', [PropertyController::class, 'updateIsrecommend'])->name('property.isrecommend.update');
     Route::patch('property/{property}/agent', [PropertyController::class, 'transferAgent'])->name('property.agent.update');
     Route::get('property/{property}', [PropertyController::class, 'show'])->name('property.show');
     Route::get('propertyRequest/{propertyRequest}', [PropertyRequestController::class, 'show'])->name('propertyRequest.show');

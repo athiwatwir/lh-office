@@ -4,25 +4,26 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PropertyTypeRequest;
 use App\Models\AssetType;
-use App\Services\ImageUploadOptions;
-use App\Services\ImageUploadService;
+use App\Services\AssetTypeImageService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PropertyTypeController extends Controller
 {
-    private const PIC_DIRECTORY = AssetType::PIC_DIRECTORY;
-
     public function __construct(
-        private readonly ImageUploadService $imageUpload,
+        private readonly AssetTypeImageService $assetTypeImage,
     ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index(): View
     {
         $data = AssetType::query()
+            ->with('image')
             ->withCount(['assets', 'customer_assets'])
             ->orderBy('seq')
             ->orderBy('name')
@@ -54,13 +55,14 @@ class PropertyTypeController extends Controller
      */
     public function store(PropertyTypeRequest $request): RedirectResponse
     {
-        AssetType::query()->create([
+        $assetType = AssetType::query()->create([
             'name' => $request->validated('name'),
             'seq' => $request->validated('seq'),
-            'pic' => $this->resolveUploadedPic($request),
             'created' => now(),
             'breatedby' => Auth::id(),
         ]);
+
+        $this->storeCoverImage($request, $assetType);
 
         return redirect()
             ->route('propertyType.index')
@@ -73,6 +75,7 @@ class PropertyTypeController extends Controller
     public function edit(string $propertyType): View
     {
         $item = AssetType::query()
+            ->with('image')
             ->withCount(['assets', 'customer_assets'])
             ->findOrFail($propertyType);
 
@@ -87,22 +90,16 @@ class PropertyTypeController extends Controller
      */
     public function update(PropertyTypeRequest $request, string $propertyType): RedirectResponse
     {
-        $item = AssetType::query()->findOrFail($propertyType);
+        $item = AssetType::query()
+            ->with('image')
+            ->findOrFail($propertyType);
 
-        $data = [
+        $item->update([
             'name' => $request->validated('name'),
             'seq' => $request->validated('seq'),
-        ];
+        ]);
 
-        if ($request->hasFile('pic')) {
-            $data['pic'] = $this->imageUpload->replace(
-                $item->pic,
-                $request->file('pic'),
-                $this->picUploadOptions(),
-            );
-        }
-
-        $item->update($data);
+        $this->replaceCoverImage($request, $item);
 
         return redirect()
             ->route('propertyType.index')
@@ -122,7 +119,7 @@ class PropertyTypeController extends Controller
                 ->with('error', 'ไม่สามารถลบได้ เนื่องจากมีข้อมูลทรัพย์สินหรือคำขอที่ใช้งานประเภทนี้อยู่');
         }
 
-        $this->imageUpload->delete($item->pic, self::PIC_DIRECTORY);
+        $this->assetTypeImage->deleteLocalImage($item);
         $item->delete();
 
         return redirect()
@@ -130,25 +127,44 @@ class PropertyTypeController extends Controller
             ->with('success', 'ลบประเภททรัพย์สินเรียบร้อยแล้ว');
     }
 
-    private function resolveUploadedPic(PropertyTypeRequest $request): ?string
+    private function storeCoverImage(PropertyTypeRequest $request, AssetType $assetType): void
     {
-        if (! $request->hasFile('pic')) {
+        $file = $this->validatedCoverFile($request);
+
+        if ($file === null) {
+            return;
+        }
+
+        $this->assetTypeImage->attach($assetType, $file);
+    }
+
+    private function replaceCoverImage(PropertyTypeRequest $request, AssetType $assetType): void
+    {
+        $file = $this->validatedCoverFile($request);
+
+
+        if ($file === null) {
+            return;
+        }
+
+        $assetType->loadMissing('image');
+        $this->assetTypeImage->replace($assetType, $file);
+    }
+
+    private function validatedCoverFile(PropertyTypeRequest $request): ?UploadedFile
+    {
+        $file = $request->file('pic');
+
+        if ($file === null) {
             return null;
         }
 
-        return $this->imageUpload->store(
-            $request->file('pic'),
-            $this->picUploadOptions(),
-        );
-    }
+        if (! $file->isValid()) {
+            throw ValidationException::withMessages([
+                'pic' => 'อัปโหลดรูปไม่สำเร็จ กรุณาลองไฟล์ที่เล็กลง (ไม่เกิน '.ini_get('upload_max_filesize').')',
+            ]);
+        }
 
-    private function picUploadOptions(): ImageUploadOptions
-    {
-        return new ImageUploadOptions(
-            directory: self::PIC_DIRECTORY,
-            quality: 85,
-            maxWidth: 800,
-            maxHeight: 800,
-        );
+        return $file;
     }
 }

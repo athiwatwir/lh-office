@@ -29,6 +29,7 @@ class AgentRequest extends FormRequest
                 Rule::unique('agents', 'code')->ignore($agentId),
             ],
             'logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:5120'],
+            'api_key' => ['nullable', 'string', 'max:64'],
         ];
     }
 
@@ -41,6 +42,7 @@ class AgentRequest extends FormRequest
             'name' => 'ชื่อเอเจนต์',
             'code' => 'รหัส',
             'logo' => 'โลโก้',
+            'api_key' => 'API Key',
         ];
     }
 

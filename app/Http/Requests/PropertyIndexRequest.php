@@ -22,6 +22,7 @@ class PropertyIndexRequest extends FormRequest
             'asset_type_id' => ['nullable', 'uuid'],
             'zone_id' => ['nullable', 'uuid'],
             'user_id' => ['nullable', 'uuid'],
+            'recommend' => ['nullable', 'boolean'],
         ];
     }
 
@@ -36,11 +37,13 @@ class PropertyIndexRequest extends FormRequest
             'asset_type_id' => trim((string) $this->query('asset_type_id', '')),
             'zone_id' => trim((string) $this->query('zone_id', '')),
             'user_id' => trim((string) $this->query('user_id', '')),
+            'recommend' => $this->boolean('recommend'),
         ];
     }
 
     public function hasFilter(): bool
     {
-        return collect($this->filters())->contains(fn (string $value) => $value !== '');
+        return $this->boolean('recommend')
+            || collect($this->filters())->except('recommend')->contains(fn (mixed $value) => $value !== '' && $value !== false);
     }
 }

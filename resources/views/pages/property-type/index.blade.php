@@ -74,8 +74,8 @@
                                     </td>
                                     <td class="px-4 py-4">
                                         <div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
-                                            @if ($item->pic_url)
-                                                <img src="{{ $item->pic_url }}" alt="{{ $item->name }}" class="h-full w-full object-cover">
+                                            @if ($item->image_url)
+                                                <img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="h-full w-full object-cover">
                                             @endif
                                         </div>
                                     </td>

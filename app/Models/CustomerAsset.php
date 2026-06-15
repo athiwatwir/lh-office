@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class CustomerAsset
- * 
+ *
  * @property string $id
  * @property string|null $zone_id
  * @property string $customer_id
@@ -38,7 +38,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $type
  * @property string|null $budgets
  * @property string|null $address_id
- * 
+ *
  * @property Customer $customer
  * @property AssetType $asset_type
  * @property Zone|null $zone
@@ -47,73 +47,75 @@ use Illuminate\Database\Eloquent\Model;
  */
 class CustomerAsset extends Model
 {
-	use HasUuids;
-	protected $table = 'customer_assets';
-	public $incrementing = false;
-	public $timestamps = false;
+    use HasUuids;
+    protected $table = 'customer_assets';
+    public $incrementing = false;
+    public $timestamps = false;
 
-	protected $casts = [
-		'created' => 'datetime',
-		'floor_total' => 'int',
-		'bedroom' => 'int',
-		'bathroom' => 'int',
-		'kitchen_room' => 'int',
-		'reception_room' => 'int',
-		'dining_room' => 'int',
-		'maid_room' => 'int',
-		'parking' => 'int',
-		'area_rai' => 'float',
-		'area_ngan' => 'float',
-		'area_wah' => 'float',
-		'area_meter' => 'float',
-		'price_per_wah' => 'float',
-		'price_amounnt' => 'float'
-	];
+    protected $casts = [
+        'created' => 'datetime',
+        'floor_total' => 'int',
+        'bedroom' => 'int',
+        'bathroom' => 'int',
+        'kitchen_room' => 'int',
+        'reception_room' => 'int',
+        'dining_room' => 'int',
+        'maid_room' => 'int',
+        'parking' => 'int',
+        'area_rai' => 'float',
+        'area_ngan' => 'float',
+        'area_wah' => 'float',
+        'area_meter' => 'float',
+        'price_per_wah' => 'float',
+        'price_amounnt' => 'float'
+    ];
 
-	protected $fillable = [
-		'zone_id',
-		'customer_id',
-		'description',
-		'asset_type_id',
-		'asset_type_des',
-		'created',
-		'floor_total',
-		'bedroom',
-		'bathroom',
-		'kitchen_room',
-		'reception_room',
-		'dining_room',
-		'maid_room',
-		'parking',
-		'area_rai',
-		'area_ngan',
-		'area_wah',
-		'area_meter',
-		'price_per_wah',
-		'price_amounnt',
-		'isreqconsult',
-		'type',
-		'budgets',
-		'address_id'
-	];
+    protected $fillable = [
+        'zone_id',
+        'customer_id',
+        'description',
+        'asset_type_id',
+        'asset_type_des',
+        'created',
+        'floor_total',
+        'bedroom',
+        'bathroom',
+        'kitchen_room',
+        'reception_room',
+        'dining_room',
+        'maid_room',
+        'parking',
+        'area_rai',
+        'area_ngan',
+        'area_wah',
+        'area_meter',
+        'price_per_wah',
+        'price_amounnt',
+        'isreqconsult',
+        'type',
+        'budgets',
+        'address_id',
+        'agent_id',
+        'isread'
+    ];
 
-	public function customer()
-	{
-		return $this->belongsTo(Customer::class);
-	}
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
 
-	public function asset_type()
-	{
-		return $this->belongsTo(AssetType::class);
-	}
+    public function asset_type()
+    {
+        return $this->belongsTo(AssetType::class);
+    }
 
-	public function zone()
-	{
-		return $this->belongsTo(Zone::class);
-	}
+    public function zone()
+    {
+        return $this->belongsTo(Zone::class);
+    }
 
-	public function address()
-	{
-		return $this->belongsTo(Address::class);
-	}
+    public function address()
+    {
+        return $this->belongsTo(Address::class);
+    }
 }

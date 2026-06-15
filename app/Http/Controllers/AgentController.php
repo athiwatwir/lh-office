@@ -43,6 +43,7 @@ class AgentController extends Controller
         Agent::query()->create([
             'name' => $request->validated('name'),
             'code' => $request->validated('code'),
+            'api_key' => $request->validated('api_key'),
             'logo' => $this->resolveUploadedLogo($request),
         ]);
 
@@ -70,6 +71,7 @@ class AgentController extends Controller
         $data = [
             'name' => $request->validated('name'),
             'code' => $request->validated('code'),
+            'api_key' => $request->validated('api_key'),
         ];
 
         if ($request->hasFile('logo')) {

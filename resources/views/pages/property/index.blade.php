@@ -61,12 +61,36 @@
                 </p>
             </div>
 
-            <a href="{{ route('property.create') }}" class="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600">
-                เพิ่มทรัพย์สิน
-            </a>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div class="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+                    <a href="{{ route('property.index', request()->except('page', 'recommend')) }}" @class([ 'inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium transition' , 'bg-white text-gray-800 shadow-theme-xs'=> ! $filters['recommend'],
+                        'text-gray-500 hover:text-gray-700' => $filters['recommend'],
+                        ])
+                        >
+                        <i class="lni lni-buildings-1 text-base" aria-hidden="true"></i>
+                        ทั้งหมด
+                    </a>
+                    <a href="{{ route('property.index', [...request()->except('page'), 'recommend' => 1]) }}" @class([ 'inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium transition' , 'bg-white text-gray-800 shadow-theme-xs'=> $filters['recommend'],
+                        'text-gray-500 hover:text-gray-700' => ! $filters['recommend'],
+                        ])
+                        >
+                        <span class="inline-flex text-warning-500">
+                            <i class="lni lni-star-fat text-base" aria-hidden="true"></i>
+                        </span>
+                        ทรัพย์แนะนำ
+                    </a>
+                </div>
+
+                <a href="{{ route('property.create') }}" class="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600">
+                    เพิ่มทรัพย์สิน
+                </a>
+            </div>
         </div>
 
         <form method="GET" action="{{ route('property.index') }}" class="border-b border-gray-200 bg-gray-50 px-5 py-4 sm:px-6">
+            @if ($filters['recommend'])
+            <input type="hidden" name="recommend" value="1">
+            @endif
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 <div>
                     <label for="code" class="mb-1.5 block text-theme-sm font-medium text-gray-700">รหัส</label>
@@ -140,6 +164,9 @@
                             <span class="text-theme-sm text-gray-500">ประเภท</span>
                         </th>
 
+                        <th class="px-4 py-3 text-center font-normal">
+                            <span class="text-theme-sm text-gray-500">รูป</span>
+                        </th>
                         <th class="px-4 py-3 text-start font-normal">
                             <span class="text-theme-sm text-gray-500">ราคา</span>
                         </th>
@@ -174,17 +201,32 @@
                     @endphp
                     <tr class="hover:bg-gray-50/60">
                         <td class="px-3 py-2 sm:px-6">
-                            <span class="whitespace-nowrap text-theme-sm font-medium text-gray-800">
-                                {{ $item->code }}
-                            </span>
+                            <span class="whitespace-nowrap text-theme-sm font-medium">{{ $item->code }}</span>
                         </td>
                         <td class="max-w-xs px-3 py-2">
-                            <button type="button" @click="openDetail('{{ $item->id }}')" title="{{ $item->name }}" class="block w-full truncate text-start text-theme-sm font-medium text-brand-600 transition hover:text-brand-700 hover:underline">
-                                {{ $item->name }}
+                            <button type="button" @click="openDetail('{{ $item->id }}')" title="{{ $item->name }}" class="flex w-full min-w-0 items-center gap-1.5 text-start text-theme-sm font-medium text-brand-600 transition hover:text-brand-700 hover:underline">
+                                @if (($item->isrecommend ?? 'N') === 'Y')
+                                <span class="inline-flex shrink-0 text-warning-500" title="ทรัพย์แนะนำ">
+                                    <i class="lni lni-star-fat text-base" aria-hidden="true"></i>
+                                </span>
+                                @endif
+                                <span class="truncate">{{ $item->name }}</span>
                             </button>
                         </td>
                         <td class="px-3 py-2">
                             <span class="text-theme-xs text-gray-700">{{ $assetTypeName }}</span>
+                        </td>
+
+                        <td class="px-3 py-2 text-center">
+                            @if ($item->asset_images_count > 0)
+                            <span title="มีรูป {{ number_format($item->asset_images_count) }} รูป" class="inline-flex text-success-600">
+                                <i class="lni lni-photos text-lg" aria-hidden="true"></i>
+                            </span>
+                            @else
+                            <span title="ไม่มีรูป" class="inline-flex text-gray-300">
+                                <i class="lni lni-photos text-lg" aria-hidden="true"></i>
+                            </span>
+                            @endif
                         </td>
 
                         <td class="px-3 py-2">
@@ -246,15 +288,14 @@
                 </div>
             </div>
 
-            <div x-show="! loading" x-html="detailHtml"></div>
+            <div x-show="! loading" x-html="detailHtml"> </div>
         </div>
     </div>
-</div>
 
-<style>
-    [x-cloak] {
-        display: none !important;
-    }
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
 
-</style>
-@endsection
+    </style>
+    @endsection

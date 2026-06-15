@@ -9,9 +9,11 @@
                 <h3 class="text-lg font-semibold text-gray-800">{{ $title }}</h3>
             </div>
 
-            <form method="POST" action="{{ route('propertyType.store') }}" enctype="multipart/form-data" class="px-5 py-6 sm:px-6">
-                @include('pages.property-type.partials.form', ['item' => $item, 'method' => 'POST'])
-            </form>
+            @include('pages.property-type.partials.form', [
+                'item' => $item,
+                'method' => 'POST',
+                'action' => route('propertyType.store'),
+            ])
         </div>
     </div>
 @endsection

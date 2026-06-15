@@ -23,11 +23,6 @@ class MenuHelper
                 'name' => 'ฝากขายบ้าน-ที่ดิน',
                 'path' => route('propertyRequest.index', ['type' => 'sell'], absolute: false),
             ],
-            [
-                'icon' => 'search',
-                'name' => 'ฝากหาบ้าน-ที่ดิน',
-                'path' => route('propertyRequest.index', ['type' => 'buy'], absolute: false),
-            ],
 
 
             /*

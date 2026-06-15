@@ -45,8 +45,10 @@ use Illuminate\Notifications\Notifiable;
  * @property string|null $deleted_at
  * @property-read string $name
  *
+ * @property string|null $image_id
+ * @property Image|null $image
+ *
  * @property Collection|Asset[] $assets
- * @property Collection|Useimage[] $useimages
  * @property Collection|Address[] $addresses
  *
  * @package App\Models
@@ -96,6 +98,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'updated',
         'verifycode',
         'position',
+        'image_id'
     ];
 
     public function getNameAttribute(): string
@@ -126,49 +129,53 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Asset::class);
     }
 
-	public function useimages()
-	{
-		return $this->hasMany(Useimage::class);
-	}
+    public function image()
+    {
+        return $this->belongsTo(Image::class);
+    }
 
-	public function getProfileImageUrlAttribute(): ?string
-	{
-		if (! $this->relationLoaded('useimages')) {
-			$this->load([
-				'useimages' => fn ($query) => $query->latest('created')->limit(1),
-				'useimages.image',
-			]);
-		}
+    public function getProfileImageUrlAttribute(): ?string
+    {
+        if (! $this->relationLoaded('image')) {
+            $this->load('image');
+        }
 
-		$path = $this->useimages->first()?->image?->img_path;
+        $image = $this->image;
 
-		if (blank($path)) {
-			return null;
-		}
+        if ($image === null) {
+            return null;
+        }
 
-		if (str_starts_with($path, self::PIC_DIRECTORY.'/')) {
-			return app(ImageUploadService::class)->url(basename($path), self::PIC_DIRECTORY);
-		}
+        $storagePath = $image->img_path ?: ($image->getAttributes()['path'] ?? null);
 
-		$localUrl = app(ImageUploadService::class)->url(basename($path), self::PIC_DIRECTORY);
+        if (blank($storagePath)) {
+            return null;
+        }
 
-		return $localUrl ?? Image::resolveLegacyUrl($path);
-	}
+        if (str_starts_with($storagePath, self::PIC_DIRECTORY.'/')) {
+            return app(ImageUploadService::class)->url(basename($storagePath), self::PIC_DIRECTORY)
+                ?? $image->url;
+        }
 
-	public function isInUse(): bool
-	{
-		return $this->assets()->exists();
-	}
+        $localUrl = app(ImageUploadService::class)->url(basename($storagePath), self::PIC_DIRECTORY);
 
-	public function isActive(): bool
-	{
-		return $this->isactive === 'Y';
-	}
+        return $localUrl ?? $image->url;
+    }
 
-	public function isSeller(): bool
-	{
-		return $this->isseller === 'Y';
-	}
+    public function isInUse(): bool
+    {
+        return $this->assets()->exists();
+    }
+
+    public function isActive(): bool
+    {
+        return $this->isactive === 'Y';
+    }
+
+    public function isSeller(): bool
+    {
+        return $this->isseller === 'Y';
+    }
 
     public function addresses()
     {

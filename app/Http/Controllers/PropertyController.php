@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PropertyIndexRequest;
+use App\Http\Requests\PropertyIsactiveRequest;
+use App\Http\Requests\PropertyIsrecommendRequest;
 use App\Http\Requests\PropertyTransferAgentRequest;
 use App\Http\Requests\PropertyRequest;
 use App\Models\Agent;
@@ -31,6 +33,7 @@ class PropertyController extends Controller
 
         $data = Asset::query()
             ->forList()
+            ->withCount('asset_images')
             ->with([
                 'asset_type:id,name',
                 'zone:id,name',
@@ -47,7 +50,7 @@ class PropertyController extends Controller
             ->withQueryString();
 
         return view('pages.property.index', [
-            'title' => 'รายการทรัพย์สิน',
+            'title' => $filters['recommend'] ? 'ทรัพย์แนะนำ' : 'รายการทรัพย์สิน',
             'data' => $data,
             'filters' => $filters,
             'hasFilter' => $request->hasFilter(),
@@ -142,6 +145,21 @@ class PropertyController extends Controller
             ->with('success', 'บันทึกทรัพย์สินเรียบร้อยแล้ว');
     }
 
+    public function updateIsrecommend(PropertyIsrecommendRequest $request, string $property): JsonResponse
+    {
+        $item = Asset::query()->findOrFail($property);
+        $isrecommend = $request->isrecommendValue();
+
+        $item->update(['isrecommend' => $isrecommend]);
+
+        return response()->json([
+            'message' => $isrecommend === 'Y'
+                ? 'ตั้งเป็นทรัพย์แนะนำเรียบร้อยแล้ว'
+                : 'ยกเลิกทรัพย์แนะนำเรียบร้อยแล้ว',
+            'isrecommend' => $isrecommend,
+        ]);
+    }
+
     public function updateIsactive(PropertyIsactiveRequest $request, string $property): JsonResponse
     {
         $item = Asset::query()->findOrFail($property);
@@ -202,10 +220,7 @@ class PropertyController extends Controller
             ->orderBy('lastname');
 
         if ($withAgentPhotos) {
-            $agentsQuery->with([
-                'useimages' => fn ($query) => $query->latest('created')->limit(1),
-                'useimages.image',
-            ]);
+            $agentsQuery->with('image');
         }
 
         return [

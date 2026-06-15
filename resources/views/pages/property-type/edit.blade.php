@@ -17,9 +17,11 @@
                 <h3 class="text-lg font-semibold text-gray-800">{{ $title }}</h3>
             </div>
 
-            <form method="POST" action="{{ route('propertyType.update', $item) }}" enctype="multipart/form-data" class="px-5 py-6 sm:px-6">
-                @include('pages.property-type.partials.form', ['item' => $item, 'method' => 'PUT'])
-            </form>
+            @include('pages.property-type.partials.form', [
+                'item' => $item,
+                'method' => 'PUT',
+                'action' => route('propertyType.update', $item),
+            ])
         </div>
     </div>
 @endsection

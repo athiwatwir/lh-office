@@ -6,7 +6,6 @@
 
 namespace App\Models;
 
-use App\Services\ImageUploadService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -15,17 +14,19 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class AssetType
- * 
+ *
  * @property string $id
  * @property string $name
- * @property string|null $pic
+ * @property string|null $image_id
+ * @property Image|null $image
+ * @property-read string|null $image_url
  * @property Carbon|null $created
  * @property string|null $breatedby
  * @property int $seq
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
- * 
+ *
  * @property Collection|Asset[] $assets
  * @property Collection|CustomerAsset[] $customer_assets
  *
@@ -33,49 +34,52 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class AssetType extends Model
 {
-	public const PIC_DIRECTORY = 'upload/property-type';
+    public const PIC_DIRECTORY = 'upload/property-type';
 
-	use SoftDeletes;
-	use HasUuids;
-	protected $table = 'asset_types';
-	public $incrementing = false;
+    use SoftDeletes;
+    use HasUuids;
+    protected $table = 'asset_types';
+    public $incrementing = false;
 
-	protected $casts = [
-		'created' => 'datetime',
-		'seq' => 'int'
-	];
+    protected $casts = [
+        'created' => 'datetime',
+        'seq' => 'int'
+    ];
 
-	protected $fillable = [
-		'name',
-		'pic',
-		'created',
-		'breatedby',
-		'seq'
-	];
+    protected $fillable = [
+        'name',
+        'created',
+        'breatedby',
+        'seq',
+        'image_id',
+    ];
 
-	public function assets()
-	{
-		return $this->hasMany(Asset::class);
-	}
+    public function assets()
+    {
+        return $this->hasMany(Asset::class);
+    }
 
-	public function customer_assets()
-	{
-		return $this->hasMany(CustomerAsset::class);
-	}
+    public function customer_assets()
+    {
+        return $this->hasMany(CustomerAsset::class);
+    }
 
-	public function isInUse(): bool
-	{
-		return $this->assets()->exists() || $this->customer_assets()->exists();
-	}
+    public function image()
+    {
+        return $this->belongsTo(Image::class);
+    }
 
-	public function getPicUrlAttribute(): ?string
-	{
-		if (blank($this->pic)) {
-			return null;
-		}
+    public function isInUse(): bool
+    {
+        return $this->assets()->exists() || $this->customer_assets()->exists();
+    }
 
-		$localUrl = app(ImageUploadService::class)->url($this->pic, self::PIC_DIRECTORY);
+    public function getImageUrlAttribute(): ?string
+    {
+        if (! $this->relationLoaded('image')) {
+            $this->load('image');
+        }
 
-		return $localUrl ?? Image::resolveLegacyUrl($this->pic);
-	}
+        return $this->image?->url;
+    }
 }

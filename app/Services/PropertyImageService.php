@@ -30,7 +30,11 @@ class PropertyImageService
         $filename = $this->imageUpload->storeWithProcessor(
             $file,
             $this->uploadOptions($asset),
-            fn (GdImage $image): GdImage => $this->applyCopyrightWatermark($image, $agentCode),
+            fn (GdImage $image): GdImage => $this->applyCopyrightWatermark(
+                $image,
+                $agentCode,
+                $this->resolveSellerPhone($asset),
+            ),
         );
 
         $path = $directory.'/'.$filename;
@@ -119,60 +123,196 @@ class PropertyImageService
         ];
     }
 
-    private function applyCopyrightWatermark(GdImage $image, string $agentCode): GdImage
+    private function applyCopyrightWatermark(GdImage $image, string $agentCode, ?string $phone = null): GdImage
+    {
+        $imageWidth = imagesx($image);
+        $imageHeight = imagesy($image);
+        $padding = max(8, (int) round(min($imageWidth, $imageHeight) * 0.02));
+        $phoneText = $this->normalizePhone($phone);
+
+        $watermark = $this->loadCopyrightWatermark($agentCode);
+        $targetWidth = 0;
+        $targetHeight = 0;
+
+        if ($watermark !== null) {
+            $watermarkWidth = imagesx($watermark);
+            $watermarkHeight = imagesy($watermark);
+
+            if ($watermarkWidth > 0 && $watermarkHeight > 0) {
+                $maxWidth = (int) round($imageWidth * 0.35);
+                $targetWidth = min($watermarkWidth, $maxWidth);
+                $scale = $targetWidth / $watermarkWidth;
+                $targetHeight = (int) round($watermarkHeight * $scale);
+            }
+        }
+
+        $textHeight = 0;
+        $textWidth = 0;
+        $fontSize = 0;
+        $textGap = 0;
+
+        if ($phoneText !== '') {
+            $textBoxWidth = $targetWidth > 0
+                ? max(24, $targetWidth - max(8, (int) round($targetWidth * 0.1)))
+                : max(48, (int) round($imageWidth * 0.28));
+
+            $fontSize = $this->fitFontSizeToWidth($phoneText, $textBoxWidth, $imageWidth);
+            $textMetrics = $this->measureText($phoneText, $fontSize);
+            $textWidth = $textMetrics['width'];
+            $textHeight = $textMetrics['height'];
+            $textGap = $targetWidth > 0
+                ? max(4, (int) round($targetHeight * 0.05))
+                : max(6, (int) round($fontSize * 0.35));
+        }
+
+        $blockWidth = max($targetWidth, $textWidth);
+        $blockHeight = $targetHeight + ($phoneText !== '' ? $textGap + $textHeight : 0);
+
+        if ($blockWidth <= 0 && $phoneText === '') {
+            if ($watermark !== null) {
+                imagedestroy($watermark);
+            }
+
+            return $image;
+        }
+
+        $blockTopY = (int) round(($imageHeight - $blockHeight) / 2);
+        $rightEdge = $imageWidth - $padding;
+        $destX = $rightEdge - max($targetWidth, $textWidth);
+
+        imagealphablending($image, true);
+        imagesavealpha($image, true);
+
+        if ($watermark !== null && $targetWidth > 0 && $targetHeight > 0) {
+            $watermarkX = $rightEdge - $targetWidth;
+            $watermarkY = $blockTopY;
+
+            imagealphablending($watermark, true);
+            imagesavealpha($watermark, true);
+
+            imagecopyresampled(
+                $image,
+                $watermark,
+                $watermarkX,
+                $watermarkY,
+                0,
+                0,
+                $targetWidth,
+                $targetHeight,
+                imagesx($watermark),
+                imagesy($watermark),
+            );
+
+            imagedestroy($watermark);
+        } elseif ($watermark !== null) {
+            imagedestroy($watermark);
+        }
+
+        if ($phoneText !== '') {
+            $anchorWidth = $targetWidth > 0 ? $targetWidth : $textWidth;
+            $anchorX = $rightEdge - $anchorWidth;
+            $textX = $anchorX + (int) round(($anchorWidth - $textWidth) / 2);
+            $textY = $blockTopY + $targetHeight + $textGap + $textHeight;
+
+            $this->drawFadedText($image, $phoneText, $fontSize, $textX, $textY, 50);
+        }
+
+        return $image;
+    }
+
+    private function resolveSellerPhone(Asset $asset): ?string
+    {
+        $asset->loadMissing('user:id,phone');
+
+        return $asset->user?->phone;
+    }
+
+    private function normalizePhone(?string $phone): string
+    {
+        $phone = trim((string) $phone);
+
+        return $phone;
+    }
+
+    private function loadCopyrightWatermark(string $agentCode): ?GdImage
     {
         $copyrightPath = public_path('copyright/'.strtoupper($agentCode).'.png');
 
         if (! is_file($copyrightPath)) {
-            return $image;
+            return null;
         }
 
         $watermark = imagecreatefrompng($copyrightPath);
 
-        if ($watermark === false) {
-            return $image;
+        return $watermark === false ? null : $watermark;
+    }
+
+    /**
+     * @return array{width: int, height: int}
+     */
+    private function measureText(string $text, int $fontSize): array
+    {
+        if ($text === '') {
+            return ['width' => 0, 'height' => 0];
         }
 
-        $imageWidth = imagesx($image);
-        $imageHeight = imagesy($image);
-        $watermarkWidth = imagesx($watermark);
-        $watermarkHeight = imagesy($watermark);
+        $fontPath = $this->watermarkFontPath();
 
-        if ($watermarkWidth <= 0 || $watermarkHeight <= 0) {
-            imagedestroy($watermark);
+        if ($fontPath === null) {
+            $width = (int) (strlen($text) * ($fontSize * 0.55));
+            $height = $fontSize;
 
-            return $image;
+            return ['width' => $width, 'height' => $height];
         }
 
-        $maxWidth = (int) round($imageWidth * 0.5);
-        $targetWidth = min($watermarkWidth, $maxWidth);
-        $scale = $targetWidth / $watermarkWidth;
-        $targetHeight = (int) round($watermarkHeight * $scale);
-        $padding = max(8, (int) round($imageHeight * 0.02));
-        $destX = (int) (($imageWidth - $targetWidth) / 2);
-        $destY = $imageHeight - $targetHeight - $padding;
+        $bbox = imagettfbbox($fontSize, 0, $fontPath, $text);
 
-        imagealphablending($image, true);
-        imagesavealpha($image, true);
-        imagealphablending($watermark, true);
-        imagesavealpha($watermark, true);
+        if ($bbox === false) {
+            return ['width' => 0, 'height' => 0];
+        }
 
-        imagecopyresampled(
-            $image,
-            $watermark,
-            $destX,
-            $destY,
-            0,
-            0,
-            $targetWidth,
-            $targetHeight,
-            $watermarkWidth,
-            $watermarkHeight,
-        );
+        return [
+            'width' => abs($bbox[2] - $bbox[0]),
+            'height' => abs($bbox[7] - $bbox[1]),
+        ];
+    }
 
-        imagedestroy($watermark);
+    private function fitFontSizeToWidth(string $text, int $maxWidth, int $imageWidth): int
+    {
+        $maxFont = max(10, (int) round($imageWidth * 0.035));
+        $minFont = 8;
 
-        return $image;
+        for ($size = $maxFont; $size >= $minFont; $size--) {
+            if ($this->measureText($text, $size)['width'] <= $maxWidth) {
+                return $size;
+            }
+        }
+
+        return $minFont;
+    }
+
+    private function drawFadedText(GdImage $image, string $text, int $fontSize, int $x, int $y, int $opacityPercent): void
+    {
+        $fontPath = $this->watermarkFontPath();
+        $opacityPercent = max(0, min(100, $opacityPercent));
+        $alpha = (int) round(127 * (1 - ($opacityPercent / 100)));
+
+        if ($fontPath === null) {
+            $color = imagecolorallocatealpha($image, 255, 255, 255, $alpha);
+            imagestring($image, 5, $x, $y - $fontSize, $text, $color);
+
+            return;
+        }
+
+        $textColor = imagecolorallocatealpha($image, 255, 255, 255, $alpha);
+        imagettftext($image, $fontSize, 0, $x, $y, $textColor, $fontPath, $text);
+    }
+
+    private function watermarkFontPath(): ?string
+    {
+        $fontPath = public_path('copyright/Sarabun-Bold.ttf');
+
+        return is_file($fontPath) ? $fontPath : null;
     }
 
     private function promoteFirstAsDefault(Asset $asset): void

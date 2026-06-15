@@ -60,7 +60,8 @@ $mapsApiKey = config('services.google_maps.key', '');
 </section>
 
 <section>
-    <h4 class="mb-4 text-base font-semibold text-gray-800">ปักหมุดบนแผนที่</h4>
+    <h4 class="mb-1 text-base font-semibold text-gray-800">ปักหมุดบนแผนที่</h4>
+    <p class="mb-2 text-theme-xs text-gray-500">คลิกบนแผนที่หรือลากหมุดเพื่อกำหนดตำแหน่งทรัพย์</p>
 
     <div id="property-map" data-api-key="{{ $mapsApiKey }}" data-latitude="{{ $latitude }}" data-longitude="{{ $longitude }}" class="h-80 w-full overflow-hidden rounded-xl border border-gray-300 bg-gray-50"></div>
 
@@ -80,6 +81,4 @@ $mapsApiKey = config('services.google_maps.key', '');
             @error('longitude')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
         </div>
     </div>
-
-    <p class="mt-2 text-theme-xs text-gray-500">คลิกบนแผนที่หรือลากหมุดเพื่อกำหนดตำแหน่งทรัพย์</p>
 </section>
