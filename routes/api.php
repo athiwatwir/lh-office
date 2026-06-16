@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AgentController;
+use App\Http\Controllers\Api\V1\CustomerAssetController;
 use App\Http\Controllers\Api\V1\PropertyController;
 use App\Http\Controllers\Api\V1\PropertyTypeController;
 use App\Http\Controllers\Api\V1\SellerApiController;
@@ -16,4 +17,6 @@ Route::middleware(['agent.api'])->prefix('v1')->group(function (): void {
     Route::get('agents', [AgentController::class, 'index'])->name('api.v1.agents.index');
 
     Route::get('seller', [SellerApiController::class, 'index'])->name('api.v1.user.index');
+
+    Route::post('customer-assets', [CustomerAssetController::class, 'store'])->name('api.v1.customer-assets.store');
 });

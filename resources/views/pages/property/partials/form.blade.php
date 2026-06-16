@@ -68,14 +68,6 @@ $ynFields = [
                 @error('user_id')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
             </div>
 
-            <div class="md:col-span-2">
-                <label class="inline-flex items-center gap-2 text-sm text-gray-700">
-                    <input type="checkbox" name="isactive" value="1" @checked(old('isactive', $item->isactive ?? 'Y') === 'Y')
-                        class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/20" />
-                    เปิดใช้งานทรัพย์สิน
-                </label>
-                @error('isactive')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
-            </div>
         </div>
     </section>
 
@@ -87,15 +79,16 @@ $ynFields = [
                 @error('price_amounnt')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
             </div>
             <div>
+                <label for="price_per_wah" class="mb-1.5 block text-theme-sm font-medium text-gray-700">ราคาต่อ ตรว. (บาท)</label>
+                <input id="price_per_wah" type="number" name="price_per_wah" min="0" step="0.01" value="{{ old('price_per_wah', $item->price_per_wah) }}" class="{{ $inputClass }} @error('price_per_wah') border-error-500 @enderror" />
+                @error('price_per_wah')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
+            </div>
+            <div>
                 <label for="price_rent" class="mb-1.5 block text-theme-sm font-medium text-gray-700">ราคาเช่า (บาท)</label>
                 <input id="price_rent" type="number" name="price_rent" min="0" step="0.01" value="{{ old('price_rent', $item->price_rent) }}" class="{{ $inputClass }} @error('price_rent') border-error-500 @enderror" />
                 @error('price_rent')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
             </div>
-            <div>
-                <label for="price_amounnt_lower" class="mb-1.5 block text-theme-sm font-medium text-gray-700">ราคาต่ำสุด (บาท)</label>
-                <input id="price_amounnt_lower" type="number" name="price_amounnt_lower" min="0" step="0.01" value="{{ old('price_amounnt_lower', $item->price_amounnt_lower) }}" class="{{ $inputClass }} @error('price_amounnt_lower') border-error-500 @enderror" />
-                @error('price_amounnt_lower')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
-            </div>
+
         </div>
     </section>
 

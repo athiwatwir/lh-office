@@ -85,9 +85,7 @@
                         <th class="px-4 py-3 text-start font-normal">
                             <span class="text-theme-sm text-gray-500">ประเภททรัพย์</span>
                         </th>
-                        <th class="px-4 py-3 text-start font-normal">
-                            <span class="text-theme-sm text-gray-500">โซน</span>
-                        </th>
+
                         <th class="px-4 py-3 text-start font-normal">
                             <span class="text-theme-sm text-gray-500">พื้นที่</span>
                         </th>
@@ -127,11 +125,32 @@
                     : ($item->budgets ?: '-');
 
                     $assetTypeName = $item->asset_type?->name ?? $item->asset_type_des ?? '-';
+                    $isUnread = ($item->isread ?? 'N') === 'N';
                     @endphp
-                    <tr @click="openDetail('{{ $item->id }}')" class="cursor-pointer transition hover:bg-brand-50/40" role="button" tabindex="0" @keydown.enter="openDetail('{{ $item->id }}')">
+                    <tr
+                        @click="openDetail('{{ $item->id }}')"
+                        @class([
+                            'cursor-pointer transition',
+                            'border-l-4 border-brand-500 bg-brand-50/70 hover:bg-brand-50' => $isUnread,
+                            'border-l-4 border-transparent hover:bg-gray-50/60' => ! $isUnread,
+                        ])
+                        role="button"
+                        tabindex="0"
+                        @keydown.enter="openDetail('{{ $item->id }}')"
+                    >
                         <td class="px-5 py-4 sm:px-6">
-                            <div>
-                                <p class="text-theme-sm font-medium text-gray-800">
+                            <div class="flex items-start gap-2">
+                                @if ($isUnread)
+                                <span class="mt-1 inline-flex shrink-0 rounded-full bg-brand-500 px-2 py-0.5 text-theme-xs font-semibold text-white" title="ยังไม่ได้อ่าน">
+                                    ใหม่
+                                </span>
+                                @endif
+                                <div class="min-w-0">
+                                <p @class([
+                                    'text-theme-sm text-gray-800',
+                                    'font-semibold' => $isUnread,
+                                    'font-medium' => ! $isUnread,
+                                ])>
                                     {{ $item->customer?->fullname ?? '-' }}
                                 </p>
                                 @if ($item->customer?->tel)
@@ -139,21 +158,28 @@
                                     {{ $item->customer->tel }}
                                 </p>
                                 @endif
+                                </div>
                             </div>
                         </td>
                         <td class="px-4 py-4">
-                            <span class="text-theme-sm text-gray-700">{{ $assetTypeName }}</span>
+                            <span @class([
+                                'text-theme-sm text-gray-700',
+                                'font-medium text-gray-900' => $isUnread,
+                            ])>{{ $assetTypeName }}</span>
+                        </td>
+
+                        <td class="px-4 py-4">
+                            <span @class([
+                                'whitespace-nowrap text-theme-sm text-gray-700',
+                                'font-medium text-gray-900' => $isUnread,
+                            ])>{{ $areaText }}</span>
                         </td>
                         <td class="px-4 py-4">
-                            <span class="text-theme-sm text-gray-700">
-                                {{ $item->zone?->name ?? '-' }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-4">
-                            <span class="whitespace-nowrap text-theme-sm text-gray-700">{{ $areaText }}</span>
-                        </td>
-                        <td class="px-4 py-4">
-                            <span class="whitespace-nowrap text-theme-sm font-medium text-gray-800">
+                            <span @class([
+                                'whitespace-nowrap text-theme-sm text-gray-800',
+                                'font-semibold text-brand-700' => $isUnread,
+                                'font-medium' => ! $isUnread,
+                            ])>
                                 {{ $priceText }}
                             </span>
                         </td>

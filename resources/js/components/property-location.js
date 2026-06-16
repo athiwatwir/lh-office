@@ -122,6 +122,11 @@ async function initPropertyLocation() {
 
             setMarker({ lat, lng });
         });
+
+        requestAnimationFrame(() => {
+            maps.event.trigger(map, 'resize');
+            map.setCenter(center);
+        });
     } catch (error) {
         console.error('[property-location] Failed to initialize map.', error);
         showMapMessage(mapContainer, 'โหลด Google Maps ไม่สำเร็จ');

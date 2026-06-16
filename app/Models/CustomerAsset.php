@@ -118,4 +118,9 @@ class CustomerAsset extends Model
     {
         return $this->belongsTo(Address::class);
     }
+
+    public function agent()
+    {
+        return $this->belongsTo(Agent::class);
+    }
 }

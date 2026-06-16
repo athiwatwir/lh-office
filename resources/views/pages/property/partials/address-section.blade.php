@@ -63,7 +63,7 @@ $mapsApiKey = config('services.google_maps.key', '');
     <h4 class="mb-1 text-base font-semibold text-gray-800">ปักหมุดบนแผนที่</h4>
     <p class="mb-2 text-theme-xs text-gray-500">คลิกบนแผนที่หรือลากหมุดเพื่อกำหนดตำแหน่งทรัพย์</p>
 
-    <div id="property-map" data-api-key="{{ $mapsApiKey }}" data-latitude="{{ $latitude }}" data-longitude="{{ $longitude }}" class="h-80 w-full overflow-hidden rounded-xl border border-gray-300 bg-gray-50"></div>
+    <div id="property-map" data-api-key="{{ $mapsApiKey }}" data-latitude="{{ $latitude }}" data-longitude="{{ $longitude }}" class="w-full overflow-hidden rounded-xl border border-gray-300 bg-gray-50"></div>
 
     @if (! $mapsApiKey)
     <p class="mt-2 text-theme-xs text-warning-600">ตั้งค่า <code class="text-xs">GOOGLE_MAPS_API_KEY</code> ในไฟล์ .env เพื่อใช้งานแผนที่</p>
