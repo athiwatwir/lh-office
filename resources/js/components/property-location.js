@@ -34,6 +34,14 @@ function parseCoordinate(value, fallback) {
     return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function isValidLatitude(value) {
+    return Number.isFinite(value) && value >= -90 && value <= 90;
+}
+
+function isValidLongitude(value) {
+    return Number.isFinite(value) && value >= -180 && value <= 180;
+}
+
 function updateCoordinateInputs(lat, lng) {
     const latInput = document.getElementById('latitude');
     const lngInput = document.getElementById('longitude');
@@ -45,6 +53,24 @@ function updateCoordinateInputs(lat, lng) {
     if (lngInput) {
         lngInput.value = lng.toFixed(7);
     }
+}
+
+function readCoordinateInputs() {
+    const latInput = document.getElementById('latitude');
+    const lngInput = document.getElementById('longitude');
+
+    if (!latInput || !lngInput) {
+        return null;
+    }
+
+    const lat = Number.parseFloat(latInput.value);
+    const lng = Number.parseFloat(lngInput.value);
+
+    if (!isValidLatitude(lat) || !isValidLongitude(lng)) {
+        return null;
+    }
+
+    return { lat, lng };
 }
 
 function showMapMessage(container, message) {
@@ -108,6 +134,17 @@ async function initPropertyLocation() {
             updateCoordinateInputs(position.lat, position.lng);
         };
 
+        const syncMapFromInputs = () => {
+            const coordinates = readCoordinateInputs();
+
+            if (!coordinates) {
+                return;
+            }
+
+            setMarker(coordinates);
+            map.panTo(coordinates);
+        };
+
         if (hasPin) {
             setMarker(center);
         }
@@ -122,6 +159,16 @@ async function initPropertyLocation() {
 
             setMarker({ lat, lng });
         });
+
+        const latInput = document.getElementById('latitude');
+        const lngInput = document.getElementById('longitude');
+
+        if (latInput && lngInput) {
+            latInput.addEventListener('input', syncMapFromInputs);
+            lngInput.addEventListener('input', syncMapFromInputs);
+            latInput.addEventListener('change', syncMapFromInputs);
+            lngInput.addEventListener('change', syncMapFromInputs);
+        }
 
         requestAnimationFrame(() => {
             maps.event.trigger(map, 'resize');

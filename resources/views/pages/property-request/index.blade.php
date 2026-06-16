@@ -41,6 +41,14 @@
                 this.detailHtml = '';
             },
         }" class="space-y-6">
+    @if (session('success'))
+    <x-ui.alert variant="success" :title="session('success')" />
+    @endif
+
+    @if (session('error'))
+    <x-ui.alert variant="error" :title="session('error')" />
+    @endif
+
     <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white">
         <div class="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div>
@@ -99,6 +107,9 @@
                         </th>
                         <th class="px-4 py-3 text-start font-normal">
                             <span class="text-theme-sm text-gray-500">วันที่สร้าง</span>
+                        </th>
+                        <th class="px-4 py-3 text-end font-normal">
+                            <span class="text-theme-sm text-gray-500">จัดการ</span>
                         </th>
                     </tr>
                 </thead>
@@ -190,6 +201,15 @@
                         </td>
                         <td class="px-4 py-4">
                             <x-ui.date-time-display :datetime="$item->created" />
+                        </td>
+                        <td class="px-4 py-4 text-end">
+                            <form method="POST" action="{{ route('propertyRequest.destroy', $item) }}" onsubmit="event.stopPropagation(); return confirm('ยืนยันการลบรายการนี้?');" class="inline-flex">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" @click.stop class="inline-flex h-9 items-center justify-center rounded-lg border border-error-200 bg-error-50 px-3 text-theme-sm font-medium text-error-600 transition hover:bg-error-100">
+                                    ลบ
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     @endforeach

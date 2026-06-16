@@ -35,6 +35,10 @@ class PropertyController extends Controller
                 fn ($query) => $query->where('agent_id', $request->agentId()),
             )
             ->when(
+                $request->userId(),
+                fn ($query) => $query->where('user_id', $request->userId()),
+            )
+            ->when(
                 $request->isRecommendFilter() === true,
                 fn ($query) => $query->where('isrecommend', 'Y'),
             )
@@ -59,6 +63,8 @@ class PropertyController extends Controller
                 'agent:id,name,code,logo',
                 'zone:id,name',
                 'address.province',
+                'user:id,firstname,lastname,phone,email,lineid,image_id',
+                'user.image',
                 'asset_images' => fn ($query) => $query->orderBy('seq')->with('image'),
             ])
             ->findOrFail($property);

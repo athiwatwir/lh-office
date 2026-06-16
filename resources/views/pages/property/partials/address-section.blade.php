@@ -61,7 +61,7 @@ $mapsApiKey = config('services.google_maps.key', '');
 
 <section>
     <h4 class="mb-1 text-base font-semibold text-gray-800">ปักหมุดบนแผนที่</h4>
-    <p class="mb-2 text-theme-xs text-gray-500">คลิกบนแผนที่หรือลากหมุดเพื่อกำหนดตำแหน่งทรัพย์</p>
+    <p class="mb-2 text-theme-xs text-gray-500">คลิกบนแผนที่ ลากหมุด หรือกรอกพิกัดละติจูด/ลองจิจูดเพื่อกำหนดตำแหน่งทรัพย์</p>
 
     <div id="property-map" data-api-key="{{ $mapsApiKey }}" data-latitude="{{ $latitude }}" data-longitude="{{ $longitude }}" class="w-full overflow-hidden rounded-xl border border-gray-300 bg-gray-50"></div>
 
@@ -72,12 +72,12 @@ $mapsApiKey = config('services.google_maps.key', '');
     <div class="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
             <label for="latitude" class="mb-1.5 block text-theme-sm font-medium text-gray-700">ละติจูด (Latitude)</label>
-            <input id="latitude" type="text" name="latitude" value="{{ $latitude }}" readonly class="{{ $inputClass }} bg-gray-50 @error('latitude') border-error-500 @enderror" />
+            <input id="latitude" type="text" name="latitude" value="{{ $latitude }}" inputmode="decimal" class="{{ $inputClass }} @error('latitude') border-error-500 @enderror" />
             @error('latitude')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
         </div>
         <div>
             <label for="longitude" class="mb-1.5 block text-theme-sm font-medium text-gray-700">ลองจิจูด (Longitude)</label>
-            <input id="longitude" type="text" name="longitude" value="{{ $longitude }}" readonly class="{{ $inputClass }} bg-gray-50 @error('longitude') border-error-500 @enderror" />
+            <input id="longitude" type="text" name="longitude" value="{{ $longitude }}" inputmode="decimal" class="{{ $inputClass }} @error('longitude') border-error-500 @enderror" />
             @error('longitude')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
         </div>
     </div>

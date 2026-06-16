@@ -65,9 +65,9 @@ class MenuHelper
                 'name' => 'ทรัพย์สิน',
                 'subItems' => [
                     ['name' => 'ประเภทของทรัพย์สิน', 'path' => route('propertyType.index', absolute: false), 'pro' => false],
-                    ['name' => 'โซน', 'path' => '/bar-chart', 'pro' => false],
-                    ['name' => 'สิ่งอำนวยความสะดวก', 'path' => '/line-chart', 'pro' => false],
-                    ['name' => 'สถานที่ใกล้เคียง', 'path' => '/line-chart', 'pro' => false],
+                    ['name' => 'โซน', 'path' => route('zone.index', absolute: false), 'pro' => false],
+                    //['name' => 'สิ่งอำนวยความสะดวก', 'path' => '/line-chart', 'pro' => false],
+                    // ['name' => 'สถานที่ใกล้เคียง', 'path' => '/line-chart', 'pro' => false],
                 ],
             ],
             [
@@ -80,8 +80,8 @@ class MenuHelper
                 'icon' => 'book',
                 'name' => 'บทความ',
                 'subItems' => [
-                    ['name' => 'รายการบทความ', 'path' => '/line-chart', 'pro' => false],
-                    ['name' => 'ประเภทของบทความ', 'path' => '/bar-chart', 'pro' => false]
+                    ['name' => 'รายการบทความ', 'path' => route('article.index', absolute: false), 'pro' => false],
+                    ['name' => 'ประเภทของบทความ', 'path' => route('category.index', absolute: false), 'pro' => false]
                 ],
             ],
 

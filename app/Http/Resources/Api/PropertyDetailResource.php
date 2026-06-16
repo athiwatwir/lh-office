@@ -31,6 +31,9 @@ class PropertyDetailResource extends JsonResource
                 'code' => $this->agent?->code,
                 'logo_url' => $this->agent?->logo_url,
             ]),
+            'user' => $this->whenLoaded('user', fn () => $this->user
+                ? new UserResource($this->user)
+                : null),
             'zone' => $this->whenLoaded('zone', fn () => [
                 'id' => $this->zone?->id,
                 'name' => $this->zone?->name,

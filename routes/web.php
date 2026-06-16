@@ -9,7 +9,10 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\PropertyImageController;
 use App\Http\Controllers\PropertyRequestController;
 use App\Http\Controllers\PropertyTypeController;
+use App\Http\Controllers\ZoneController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ArticleController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -36,14 +39,18 @@ Route::middleware('auth')->group(function () {
         'propertyRequest' => PropertyRequestController::class,
         'property' => PropertyController::class,
         'propertyType' => PropertyTypeController::class,
+        'zone' => ZoneController::class,
         'user' => UserController::class,
         'agent' => AgentController::class,
+        'category' => CategoryController::class,
+        'article' => ArticleController::class,
     ], ['except' => ['show']]);
 
     Route::put('user/{user}/password', [UserController::class, 'updatePassword'])->name('user.password.update');
     Route::patch('property/{property}/isactive', [PropertyController::class, 'updateIsactive'])->name('property.isactive.update');
     Route::patch('property/{property}/isrecommend', [PropertyController::class, 'updateIsrecommend'])->name('property.isrecommend.update');
     Route::patch('property/{property}/agent', [PropertyController::class, 'transferAgent'])->name('property.agent.update');
+    Route::get('article/{article}', [ArticleController::class, 'show'])->name('article.show');
     Route::get('property/{property}', [PropertyController::class, 'show'])->name('property.show');
     Route::get('propertyRequest/{propertyRequest}', [PropertyRequestController::class, 'show'])->name('propertyRequest.show');
     Route::post('property/{property}/images', [PropertyImageController::class, 'store'])->name('property.images.store');

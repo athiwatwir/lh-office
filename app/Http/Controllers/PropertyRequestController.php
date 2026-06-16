@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CustomerAsset;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -77,6 +78,13 @@ class PropertyRequestController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $item = CustomerAsset::query()->findOrFail($id);
+        $type = $item->type === 'S' ? 'sell' : 'buy';
+        CustomerAsset::query()
+            ->whereKey($item->id)
+            ->delete();
+
+        return to_route('propertyRequest.index', ['type' => $type])
+            ->with('success', 'ลบคำขอเรียบร้อยแล้ว');
     }
 }

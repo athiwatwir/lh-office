@@ -29,7 +29,7 @@
 
             <!-- Logo (mobile only) -->
             <a href="{{ route('dashboard') }}" class="xl:hidden">
-                <img class="dark:hidden" src="/images/logo/logo.png" alt="Logo" />
+                <img class="dark:hidden w-60 h-auto" src="/images/logo/logo.png" alt="Logo" />
                 <img class="hidden" src="/images/logo/auth-logo.png" alt="Logo" />
             </a>
 
