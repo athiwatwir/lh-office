@@ -46,7 +46,7 @@ class PropertyDetailResource extends JsonResource
                 'moo' => $address->moo,
                 'district' => $address->district,
                 'amphur' => $address->amphur,
-                'province' => $address->province?->province_name,
+                'province' => $address->province,
                 'zipcode' => $address->zipcode,
             ] : null,
             'latitude' => $this->latitude,

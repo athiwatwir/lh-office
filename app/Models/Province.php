@@ -7,7 +7,6 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -22,8 +21,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
- * 
- * @property Collection|Address[] $addresses
  *
  * @package App\Models
  */
@@ -43,9 +40,4 @@ class Province extends Model
 		'province_name',
 		'geoid'
 	];
-
-	public function addresses()
-	{
-		return $this->hasMany(Address::class);
-	}
 }

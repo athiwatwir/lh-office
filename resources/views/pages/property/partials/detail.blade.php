@@ -44,7 +44,7 @@
         $address?->moo ? 'ม.' . $address->moo : null,
         $address?->district,
         $address?->amphur,
-        $address?->province?->province_name,
+        $address?->province,
         $address?->zipcode,
     ]);
 

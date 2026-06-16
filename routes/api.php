@@ -11,6 +11,7 @@ Route::middleware(['agent.api'])->prefix('v1')->group(function (): void {
     Route::get('property-types', [PropertyTypeController::class, 'index'])->name('api.v1.property-types.index');
 
     Route::get('properties', [PropertyController::class, 'index'])->name('api.v1.properties.index');
+    Route::get('properties/search', [PropertyController::class, 'search'])->name('api.v1.properties.search');
 
     Route::get('properties/{property}', [PropertyController::class, 'show'])->name('api.v1.properties.show');
 

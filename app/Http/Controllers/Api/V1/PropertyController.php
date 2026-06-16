@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\PropertyIndexRequest;
+use App\Http\Requests\Api\PropertySearchRequest;
 use App\Http\Resources\Api\PropertyDetailResource;
 use App\Http\Resources\Api\PropertyListResource;
 use App\Models\Asset;
@@ -19,7 +20,7 @@ class PropertyController extends Controller
                 'asset_type:id,name',
                 'agent:id,name,code',
                 'zone:id,name',
-                'asset_images' => fn ($query) => $query
+                'asset_images' => fn($query) => $query
                     ->orderByRaw("CASE WHEN isdefault = 'Y' THEN 0 ELSE 1 END")
                     ->orderBy('seq')
                     ->limit(1)
@@ -28,23 +29,23 @@ class PropertyController extends Controller
             ->withCount('asset_images')
             ->when(
                 $request->assetTypeId(),
-                fn ($query) => $query->where('asset_type_id', $request->assetTypeId()),
+                fn($query) => $query->where('asset_type_id', $request->assetTypeId()),
             )
             ->when(
                 $request->agentId(),
-                fn ($query) => $query->where('agent_id', $request->agentId()),
+                fn($query) => $query->where('agent_id', $request->agentId()),
             )
             ->when(
                 $request->userId(),
-                fn ($query) => $query->where('user_id', $request->userId()),
+                fn($query) => $query->where('user_id', $request->userId()),
             )
             ->when(
                 $request->isRecommendFilter() === true,
-                fn ($query) => $query->where('isrecommend', 'Y'),
+                fn($query) => $query->where('isrecommend', 'Y'),
             )
             ->when(
                 $request->isRecommendFilter() === false,
-                fn ($query) => $query->where(fn ($builder) => $builder
+                fn($query) => $query->where(fn($builder) => $builder
                     ->where('isrecommend', '!=', 'Y')
                     ->orWhereNull('isrecommend')),
             )
@@ -62,13 +63,71 @@ class PropertyController extends Controller
                 'asset_type:id,name',
                 'agent:id,name,code,logo',
                 'zone:id,name',
-                'address.province',
+                'address',
                 'user:id,firstname,lastname,phone,email,lineid,image_id',
                 'user.image',
-                'asset_images' => fn ($query) => $query->orderBy('seq')->with('image'),
+                'asset_images' => fn($query) => $query->orderBy('seq')->with('image'),
             ])
             ->findOrFail($property);
 
         return new PropertyDetailResource($item);
+    }
+
+    public function search(PropertySearchRequest $request): AnonymousResourceCollection
+    {
+        $properties = Asset::query()
+            ->active()
+            ->with([
+                'asset_type:id,name',
+                'agent:id,name,code',
+                'zone:id,name',
+                'asset_images' => fn ($query) => $query
+                    ->orderByRaw("CASE WHEN isdefault = 'Y' THEN 0 ELSE 1 END")
+                    ->orderBy('seq')
+                    ->limit(1)
+                    ->with('image'),
+            ])
+            ->withCount('asset_images')
+            ->when(
+                $request->text(),
+                fn ($query, $text) => $query->where(function ($builder) use ($text) {
+                    $builder
+                        ->where('code', 'like', "%{$text}%")
+                        ->orWhere('name', 'like', "%{$text}%")
+                        ->orWhereHas('address', fn ($addressQuery) => $addressQuery
+                            ->where('address1', 'like', "%{$text}%"));
+                }),
+            )
+            ->when(
+                $request->assetTypeId(),
+                fn ($query, $assetTypeId) => $query->where('asset_type_id', $assetTypeId),
+            )
+            ->when(
+                $request->province(),
+                fn ($query, $province) => $query->whereHas('address', fn ($addressQuery) => $addressQuery
+                    ->where('province', 'like', "%{$province}%")),
+            )
+            ->when(
+                $request->district(),
+                fn ($query, $district) => $query->whereHas('address', fn ($addressQuery) => $addressQuery
+                    ->where('district', 'like', "%{$district}%")),
+            )
+            ->when(
+                $request->amphur(),
+                fn ($query, $amphur) => $query->whereHas('address', fn ($addressQuery) => $addressQuery
+                    ->where('amphur', 'like', "%{$amphur}%")),
+            )
+            ->when(
+                $request->priceMin() !== null,
+                fn ($query) => $query->where('price_amounnt', '>=', $request->priceMin()),
+            )
+            ->when(
+                $request->priceMax() !== null,
+                fn ($query) => $query->where('price_amounnt', '<=', $request->priceMax()),
+            )
+            ->latestFirst()
+            ->paginate($request->perPage());
+
+        return PropertyListResource::collection($properties);
     }
 }

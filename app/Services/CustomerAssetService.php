@@ -56,7 +56,7 @@ class CustomerAssetService
             'customer:id,fullname,tel,email,lineid',
             'asset_type:id,name',
             'zone:id,name,description',
-            'address.province',
+            'address',
         ]);
     }
 

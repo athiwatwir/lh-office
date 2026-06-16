@@ -64,7 +64,7 @@ class PropertyController extends Controller
         $activeAgentId = $this->activeAgent->id();
 
         $item = Asset::query()
-            ->with(['asset_type', 'zone', 'user', 'address.province', 'agent', 'asset_images.image'])
+            ->with(['asset_type', 'zone', 'user', 'address', 'agent', 'asset_images.image'])
             ->when(
                 $activeAgentId,
                 fn ($query) => $query->where('agent_id', $activeAgentId),
@@ -119,7 +119,7 @@ class PropertyController extends Controller
     public function edit(string $property): View
     {
         $item = Asset::query()
-            ->with(['asset_type', 'zone', 'user', 'address.province', 'asset_images.image'])
+            ->with(['asset_type', 'zone', 'user', 'address', 'asset_images.image'])
             ->findOrFail($property);
 
         return view('pages.property.edit', [

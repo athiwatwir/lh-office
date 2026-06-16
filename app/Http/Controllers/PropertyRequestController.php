@@ -51,7 +51,7 @@ class PropertyRequestController extends Controller
     public function show(string $id)
     {
         $item = CustomerAsset::query()
-            ->with(['customer', 'asset_type', 'zone', 'address.province'])
+            ->with(['customer', 'asset_type', 'zone', 'address'])
             ->findOrFail($id);
 
         return view('pages.property-request.partials.detail', compact('item'));

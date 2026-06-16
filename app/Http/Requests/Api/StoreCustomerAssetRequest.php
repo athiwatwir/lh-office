@@ -52,7 +52,7 @@ class StoreCustomerAssetRequest extends FormRequest
             'address.street' => ['nullable', 'string', 'max:255'],
             'address.district' => ['nullable', 'string', 'max:100'],
             'address.amphur' => ['nullable', 'string', 'max:100'],
-            'address.province_name' => ['nullable', 'string', 'max:100'],
+            'address.province' => ['nullable', 'string', 'max:100'],
             'address.zipcode' => ['nullable', 'string', 'max:10'],
             'address.description' => ['nullable', 'string'],
         ];

@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Address;
-use App\Models\Province;
 
 class PropertyAddressService
 {
@@ -18,8 +17,6 @@ class PropertyAddressService
             return $addressId;
         }
 
-        $provinceId = $this->resolveProvinceId($data['province_name'] ?? null);
-
         $payload = [
             'address1' => $data['address1'] ?? null,
             'address2' => $data['address2'] ?? null,
@@ -28,7 +25,7 @@ class PropertyAddressService
             'street' => $data['street'] ?? null,
             'district' => $data['district'] ?? null,
             'amphur' => $data['amphur'] ?? null,
-            'province_id' => $provinceId,
+            'province' => $this->resolveProvince($data),
             'zipcode' => $data['zipcode'] ?? null,
             'description' => $data['description'] ?? null,
         ];
@@ -47,14 +44,17 @@ class PropertyAddressService
         return $address->id;
     }
 
-    private function resolveProvinceId(?string $provinceName): ?string
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function resolveProvince(array $data): ?string
     {
-        if (! filled($provinceName)) {
+        $value = $data['province'] ?? $data['province_name'] ?? null;
+
+        if (! filled($value)) {
             return null;
         }
 
-        return Province::query()
-            ->whereRaw('TRIM(province_name) = ?', [trim($provinceName)])
-            ->value('id');
+        return trim((string) $value);
     }
 }

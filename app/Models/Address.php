@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class Address
- * 
+ *
  * @property string $id
  * @property string|null $address1
  * @property string|null $address2
@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $soi
  * @property string|null $district
  * @property string|null $amphur
- * @property string|null $province_id
+ * @property string|null $province
  * @property string|null $street
  * @property string|null $zipcode
  * @property Carbon|null $created
@@ -30,8 +30,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
- * 
- * @property Province|null $province
+ *
  * @property Collection|Asset[] $assets
  * @property Collection|User[] $users
  *
@@ -39,42 +38,37 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Address extends Model
 {
-	use SoftDeletes;
-	use HasUuids;
-	protected $table = 'addresses';
-	public $incrementing = false;
+    use SoftDeletes;
+    use HasUuids;
+    protected $table = 'addresses';
+    public $incrementing = false;
 
-	protected $casts = [
-		'created' => 'datetime'
-	];
+    protected $casts = [
+        'created' => 'datetime'
+    ];
 
-	protected $fillable = [
-		'address1',
-		'address2',
-		'moo',
-		'soi',
-		'district',
-		'amphur',
-		'province_id',
-		'street',
-		'zipcode',
-		'created',
-		'description'
-	];
+    protected $fillable = [
+        'address1',
+        'address2',
+        'moo',
+        'soi',
+        'district',
+        'amphur',
+        'street',
+        'zipcode',
+        'created',
+        'description',
+        'province',
+    ];
 
-	public function province()
-	{
-		return $this->belongsTo(Province::class);
-	}
+    public function assets()
+    {
+        return $this->hasMany(Asset::class);
+    }
 
-	public function assets()
-	{
-		return $this->hasMany(Asset::class);
-	}
-
-	public function users()
-	{
-		return $this->belongsToMany(User::class, 'user_addresses')
-					->withPivot('id', 'created', 'description');
-	}
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'user_addresses')
+            ->withPivot('id', 'created', 'description');
+    }
 }

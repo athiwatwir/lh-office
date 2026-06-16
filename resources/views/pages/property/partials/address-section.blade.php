@@ -1,7 +1,7 @@
 @php
 $address = $item->address;
 $addr = fn (string $field, mixed $default = '') => old("address.{$field}", $address?->{$field} ?? $default);
-$provinceName = old('address.province_name', $address?->province?->province_name ? trim($address->province->province_name) : '');
+$provinceName = old('address.province', $address?->province ? trim($address->province) : '');
 $latitude = old('latitude', $item->latitude);
 $longitude = old('longitude', $item->longitude);
 $mapsApiKey = config('services.google_maps.key', '');
@@ -43,8 +43,8 @@ $mapsApiKey = config('services.google_maps.key', '');
 
         <div>
             <label for="address_province" class="mb-1.5 block text-theme-sm font-medium text-gray-700">จังหวัด</label>
-            <input id="address_province" type="text" name="address[province_name]" value="{{ $provinceName }}" autocomplete="off" class="{{ $inputClass }} @error('address.province_name') border-error-500 @enderror" />
-            @error('address.province_name')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
+            <input id="address_province" type="text" name="address[province]" value="{{ $provinceName }}" autocomplete="off" class="{{ $inputClass }} @error('address.province') border-error-500 @enderror" />
+            @error('address.province')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
         </div>
 
         <div>

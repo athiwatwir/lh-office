@@ -32,7 +32,7 @@ $payload = [
     'address' => [
         'district' => 'บางนา',
         'amphur' => 'บางนา',
-        'province_name' => 'กรุงเทพมหานคร',
+        'province' => 'กรุงเทพมหานคร',
         'zipcode' => '10260',
     ],
 ];
