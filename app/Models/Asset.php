@@ -186,6 +186,11 @@ class Asset extends Model
         return $this->belongsTo(Agent::class);
     }
 
+    public function views()
+    {
+        return $this->hasMany(AssetViewsDaily::class);
+    }
+
     public function images()
     {
         return $this->belongsToMany(Image::class, 'asset_images')

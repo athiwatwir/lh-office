@@ -8,10 +8,16 @@ use App\Http\Requests\Api\PropertySearchRequest;
 use App\Http\Resources\Api\PropertyDetailResource;
 use App\Http\Resources\Api\PropertyListResource;
 use App\Models\Asset;
+use App\Services\AssetViewService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class PropertyController extends Controller
 {
+    public function __construct(
+        private readonly AssetViewService $assetViews,
+    ) {}
+
     public function index(PropertyIndexRequest $request): AnonymousResourceCollection
     {
         $properties = Asset::query()
@@ -71,6 +77,17 @@ class PropertyController extends Controller
             ->findOrFail($property);
 
         return new PropertyDetailResource($item);
+    }
+
+    public function recordView(string $property): JsonResponse
+    {
+        $asset = Asset::query()
+            ->active()
+            ->findOrFail($property);
+
+        $result = $this->assetViews->record($asset);
+
+        return response()->json($result);
     }
 
     public function search(PropertySearchRequest $request): AnonymousResourceCollection

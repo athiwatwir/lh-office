@@ -38,7 +38,7 @@ class UserController extends Controller
         return view('pages.user.create', [
             'title' => 'เพิ่มตัวแทนขาย/ผู้ใช้งานระบบ',
             'item' => new User([
-                'isactive' => 'Y',
+                'isactive' => 'N',
                 'isseller' => 'Y',
             ]),
         ]);
@@ -46,13 +46,18 @@ class UserController extends Controller
 
     public function store(UserRequest $request): RedirectResponse
     {
-        $user = User::query()->create([
+        $payload = [
             ...$request->profileData(),
-            'password' => Hash::make($request->validated('password')),
             'isverify' => 'Y',
             'created' => now(),
             'updated' => now(),
-        ]);
+        ];
+
+        if ($request->input('isactive') === 'Y') {
+            $payload['password'] = Hash::make($request->validated('password'));
+        }
+
+        $user = User::query()->create($payload);
 
         if ($request->hasFile('pic')) {
             $this->userImage->attach($user, $request->file('pic'));

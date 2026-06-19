@@ -42,7 +42,14 @@ class UserRequest extends FormRequest
             'position' => ['nullable', 'string', 'max:255'],
             'isactive' => ['nullable', Rule::in(['Y', 'N'])],
             'isseller' => ['nullable', Rule::in(['Y', 'N'])],
-            'password' => [$this->isMethod('POST') ? 'required' : 'prohibited', 'string', 'min:8', 'confirmed'],
+            'password' => [
+                Rule::requiredIf(fn () => $this->isMethod('POST') && $this->input('isactive') === 'Y'),
+                Rule::prohibitedIf(fn () => $this->isMethod('PUT')),
+                'nullable',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
             'pic' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:5120'],
         ];
     }

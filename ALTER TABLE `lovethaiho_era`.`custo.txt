@@ -1,0 +1,58 @@
+ALTER TABLE `lovethaiho_era`.`customer_assets` 
+ADD COLUMN `created_at` DATETIME NULL AFTER `address_id`,
+ADD COLUMN `updated_at` DATETIME NULL AFTER `created_at`;
+
+ALTER TABLE `useimages` 
+ADD COLUMN `created_at` DATETIME NULL,
+ADD COLUMN `updated_at` DATETIME NULL;
+
+ALTER TABLE `user_addresses` 
+ADD COLUMN `created_at` DATETIME NULL,
+ADD COLUMN `updated_at` DATETIME NULL;
+
+
+UPDATE addresses SET created_at = created, updated_at = created WHERE created IS NOT NULL;
+UPDATE articles SET created_at = created, updated_at = created WHERE created IS NOT NULL;
+UPDATE asset_images SET created_at = created, updated_at = created WHERE created IS NOT NULL;
+UPDATE asset_types SET created_at = created, updated_at = created WHERE created IS NOT NULL;
+UPDATE assets SET created_at = created, updated_at = created WHERE created IS NOT NULL;
+UPDATE categories SET created_at = created, updated_at = created WHERE created IS NOT NULL;
+UPDATE contacts SET created_at = created, updated_at = created WHERE created IS NOT NULL;
+UPDATE customer_assets SET created_at = created, updated_at = created WHERE created IS NOT NULL;
+UPDATE customers SET created_at = created, updated_at = created WHERE created IS NOT NULL;
+UPDATE images SET created_at = created, updated_at = created WHERE created IS NOT NULL;
+UPDATE options SET created_at = created, updated_at = created WHERE created IS NOT NULL;
+UPDATE settings SET created_at = created, updated_at = created WHERE created IS NOT NULL;
+UPDATE useimages SET created_at = created, updated_at = created WHERE created IS NOT NULL;
+UPDATE user_addresses SET created_at = created, updated_at = created WHERE created IS NOT NULL;
+UPDATE users SET created_at = created, updated_at = created WHERE created IS NOT NULL;
+UPDATE zones SET created_at = created, updated_at = created WHERE created IS NOT NULL;
+
+
+
+CREATE TABLE `lovethaiho_era`.`agents` (
+  `id` CHAR(36) NOT NULL,
+  `name` VARCHAR(100) NOT NULL,
+  `code` VARCHAR(45) NULL,
+  `logo` VARCHAR(255) NULL,
+  `created_at` DATETIME NULL,
+  `updated_at` DATETIME NULL,
+  PRIMARY KEY (`id`));
+
+
+ALTER TABLE `lovethaiho_era`.`assets` 
+ADD COLUMN `agent_id` CHAR(36) NULL AFTER `deleted_at`;
+
+
+ALTER TABLE `lovethaiho_era`.`assets` 
+ADD COLUMN `isactive` ENUM('Y', 'N') NOT NULL DEFAULT 'Y' AFTER `agent_id`;
+
+
+
+UPDATE images
+SET path = CONCAT('upload/property/old/', SUBSTRING_INDEX(path, 'upload/', -1))
+WHERE path LIKE '%lovethaihome.com%';
+
+
+
+update assets set agent_id = '019ec575-1a10-725b-8e16-9c9b9a2709d0'

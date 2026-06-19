@@ -13,6 +13,8 @@ Route::middleware(['agent.api'])->prefix('v1')->group(function (): void {
     Route::get('properties', [PropertyController::class, 'index'])->name('api.v1.properties.index');
     Route::get('properties/search', [PropertyController::class, 'search'])->name('api.v1.properties.search');
 
+    Route::post('properties/{property}/views', [PropertyController::class, 'recordView'])->name('api.v1.properties.views.store');
+
     Route::get('properties/{property}', [PropertyController::class, 'show'])->name('api.v1.properties.show');
 
     Route::get('agents', [AgentController::class, 'index'])->name('api.v1.agents.index');

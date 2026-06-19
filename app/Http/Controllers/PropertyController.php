@@ -41,8 +41,8 @@ class PropertyController extends Controller
             ])
             ->when(
                 $activeAgentId,
-                fn ($query) => $query->where('agent_id', $activeAgentId),
-                fn ($query) => $query->whereRaw('0 = 1'),
+                fn($query) => $query->where('agent_id', $activeAgentId),
+                fn($query) => $query->whereRaw('0 = 1'),
             )
             ->filtered($filters)
             ->latestFirst()
@@ -67,8 +67,8 @@ class PropertyController extends Controller
             ->with(['asset_type', 'zone', 'user', 'address', 'agent', 'asset_images.image'])
             ->when(
                 $activeAgentId,
-                fn ($query) => $query->where('agent_id', $activeAgentId),
-                fn ($query) => $query->whereRaw('0 = 1'),
+                fn($query) => $query->where('agent_id', $activeAgentId),
+                fn($query) => $query->whereRaw('0 = 1'),
             )
             ->findOrFail($property);
 
@@ -109,6 +109,7 @@ class PropertyController extends Controller
             'agent_id' => $this->activeAgent->id(),
             'created' => now(),
             'createdby' => Auth::id(),
+            'isactive' => 'Y',
         ]);
 
         return redirect()
@@ -141,7 +142,7 @@ class PropertyController extends Controller
         ]);
 
         return redirect()
-            ->route('property.index')
+            ->route('property.edit', $item)
             ->with('success', 'บันทึกทรัพย์สินเรียบร้อยแล้ว');
     }
 

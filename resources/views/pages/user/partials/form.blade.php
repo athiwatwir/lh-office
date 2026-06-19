@@ -4,9 +4,10 @@
 @php
 $inputClass = 'h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10';
 $fileClass = 'focus:border-ring-brand-300 shadow-theme-xs focus:file:ring-brand-300 h-11 w-full overflow-hidden rounded-lg border border-gray-300 bg-transparent text-sm text-gray-500 transition-colors file:mr-5 file:border-collapse file:cursor-pointer file:rounded-l-lg file:border-0 file:border-r file:border-solid file:border-gray-200 file:bg-gray-50 file:py-3 file:pr-3 file:pl-3.5 file:text-sm file:text-gray-700 placeholder:text-gray-400 hover:file:bg-gray-100 focus:outline-hidden';
+$isActiveInitially = old('isactive', $item->isactive ?? 'N') === 'Y';
 @endphp
 
-<div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+<div class="grid grid-cols-1 gap-5 md:grid-cols-2" x-data="{ isActive: @js($isActiveInitially) }">
     <!--
     <div>
         <label for="usercode" class="mb-1.5 block text-theme-sm font-medium text-gray-700">รหัสพนักงาน</label>
@@ -34,7 +35,7 @@ $fileClass = 'focus:border-ring-brand-300 shadow-theme-xs focus:file:ring-brand-
     </div>
 
     <div>
-        <label for="email" class="mb-1.5 block text-theme-sm font-medium text-gray-700">อีเมล <span class="text-error-500">*</span></label>
+        <label for="email" class="mb-1.5 block text-theme-sm font-medium text-gray-700">อีเมล </label>
         <input id="email" type="email" name="email" value="{{ old('email', $item->email) }}" required class="{{ $inputClass }} @error('email') border-error-500 @enderror" />
         @error('email')
         <p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>
@@ -67,7 +68,7 @@ $fileClass = 'focus:border-ring-brand-300 shadow-theme-xs focus:file:ring-brand-
 
     <div class="md:col-span-2 flex flex-wrap gap-6">
         <label class="inline-flex items-center gap-2 text-sm text-gray-700">
-            <input type="checkbox" name="isactive" value="1" @checked(old('isactive', $item->isactive) === 'Y')
+            <input type="checkbox" name="isactive" value="1" x-model="isActive"
             class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/20"
             />
             เปิดให้ใช้งานระบบ
@@ -106,9 +107,10 @@ $fileClass = 'focus:border-ring-brand-300 shadow-theme-xs focus:file:ring-brand-
     </div>
 
     @if ($showPassword)
+    <div x-show="isActive" x-cloak class="contents">
     <div>
         <label for="password" class="mb-1.5 block text-theme-sm font-medium text-gray-700">รหัสผ่าน <span class="text-error-500">*</span></label>
-        <input id="password" type="password" name="password" required class="{{ $inputClass }} @error('password') border-error-500 @enderror" />
+        <input id="password" type="password" name="password" :required="isActive" :disabled="!isActive" class="{{ $inputClass }} @error('password') border-error-500 @enderror" />
         @error('password')
         <p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>
         @enderror
@@ -116,7 +118,8 @@ $fileClass = 'focus:border-ring-brand-300 shadow-theme-xs focus:file:ring-brand-
 
     <div>
         <label for="password_confirmation" class="mb-1.5 block text-theme-sm font-medium text-gray-700">ยืนยันรหัสผ่าน <span class="text-error-500">*</span></label>
-        <input id="password_confirmation" type="password" name="password_confirmation" required class="{{ $inputClass }}" />
+        <input id="password_confirmation" type="password" name="password_confirmation" :required="isActive" :disabled="!isActive" class="{{ $inputClass }}" />
+    </div>
     </div>
     @endif
 </div>
