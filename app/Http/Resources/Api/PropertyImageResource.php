@@ -15,7 +15,7 @@ class PropertyImageResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'url' => $this->image?->url,
+            'url' => $this->image?->galleryUrl(absolute: true),
             'is_default' => $this->isdefault === 'Y',
             'seq' => $this->seq,
         ];

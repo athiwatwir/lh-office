@@ -117,7 +117,7 @@ class PropertyImageService
 
         return [
             'id' => $assetImage->id,
-            'url' => $assetImage->image?->url,
+            'url' => $assetImage->image?->galleryUrl(),
             'isDefault' => $assetImage->isdefault === 'Y',
             'seq' => $assetImage->seq,
         ];

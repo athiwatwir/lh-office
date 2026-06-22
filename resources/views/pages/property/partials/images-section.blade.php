@@ -3,7 +3,7 @@
 $initialImages = $item->asset_images
 ->map(fn ($assetImage) => [
 'id' => $assetImage->id,
-'url' => $assetImage->image?->url,
+'url' => $assetImage->image?->galleryUrl(),
 'isDefault' => $assetImage->isdefault === 'Y',
 'seq' => $assetImage->seq,
 ])

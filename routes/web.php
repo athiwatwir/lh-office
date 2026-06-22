@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EditorImageController;
+use App\Http\Controllers\ImageProxyController;
 use App\Http\Controllers\ActiveAgentController;
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\ProfileController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\PropertyImageController;
 use App\Http\Controllers\PropertyRequestController;
 use App\Http\Controllers\PropertyTypeController;
+use App\Http\Controllers\PropertyViewRankingController;
 use App\Http\Controllers\ZoneController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategoryController;
@@ -16,14 +18,19 @@ use App\Http\Controllers\ArticleController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/img/{image}', [ImageProxyController::class, 'show'])->name('image.proxy');
+
 Route::get('/', function () {
     return Auth::check()
         ? redirect()->route('dashboard')
         : redirect()->route('login');
 });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
-Route::get('/dashboard/api/summary', [DashboardController::class, 'summary'])->middleware(['auth', 'verified'])->name('dashboard.api.summary');
+Route::middleware(['auth', 'verified'])->group(function (): void {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/data/summary', [DashboardController::class, 'summary'])->name('dashboard.api.summary');
+    Route::get('/dashboard/data/top-views', [DashboardController::class, 'topViews'])->name('dashboard.api.top-views');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -46,6 +53,7 @@ Route::middleware('auth')->group(function () {
         'article' => ArticleController::class,
     ], ['except' => ['show']]);
 
+    Route::get('property-views', [PropertyViewRankingController::class, 'index'])->name('property.views.index');
     Route::put('user/{user}/password', [UserController::class, 'updatePassword'])->name('user.password.update');
     Route::patch('property/{property}/isactive', [PropertyController::class, 'updateIsactive'])->name('property.isactive.update');
     Route::patch('property/{property}/isrecommend', [PropertyController::class, 'updateIsrecommend'])->name('property.isrecommend.update');

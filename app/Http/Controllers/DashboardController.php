@@ -6,7 +6,9 @@ use App\Models\Asset;
 use App\Models\CustomerAsset;
 use App\Models\User;
 use App\Services\ActiveAgentService;
+use App\Services\AssetViewRankingService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -97,5 +99,16 @@ class DashboardController extends Controller
             'top_sellers' => $topSellers,
             'unread_sell_requests' => $unreadSellRequests,
         ]);
+    }
+
+    public function topViews(Request $request, ActiveAgentService $activeAgent, AssetViewRankingService $ranking): JsonResponse
+    {
+        $days = (int) $request->query('days', 7);
+        $limit = (int) $request->query('limit', 5);
+        $page = (int) $request->query('page', 1);
+
+        return response()->json(
+            $ranking->paginate($activeAgent->id(), $days, $limit, $page),
+        );
     }
 }

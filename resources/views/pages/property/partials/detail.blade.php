@@ -105,7 +105,7 @@
                 @foreach ($images as $assetImage)
                     <div class="relative overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
                         <img
-                            src="{{ $assetImage->image?->url }}"
+                            src="{{ $assetImage->image?->galleryUrl() }}"
                             alt="รูปทรัพย์ {{ $item->code }}"
                             class="aspect-[4/3] w-full object-cover"
                             loading="lazy"

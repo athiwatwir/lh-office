@@ -46,6 +46,10 @@ class PropertyController extends Controller
                 fn($query) => $query->where('user_id', $request->userId()),
             )
             ->when(
+                $request->zoneId(),
+                fn($query) => $query->where('zone_id', $request->zoneId()),
+            )
+            ->when(
                 $request->isRecommendFilter() === true,
                 fn($query) => $query->where('isrecommend', 'Y'),
             )

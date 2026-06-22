@@ -84,6 +84,41 @@ class Image extends Model
         return self::resolveLegacyUrl($storagePath);
     }
 
+    public function proxyUrl(?int $width = null, ?int $height = null, ?int $quality = null, bool $absolute = false): ?string
+    {
+        if (blank($this->id)) {
+            return null;
+        }
+
+        $params = array_filter([
+            'w' => $width,
+            'h' => $height,
+            'q' => $quality !== null && $quality !== (int) config('image.default_quality', 80) ? $quality : null,
+        ], fn ($value) => $value !== null);
+
+        $path = route('image.proxy', ['image' => $this->id], $absolute);
+
+        if ($params === []) {
+            return $path;
+        }
+
+        return $path.'?'.http_build_query($params);
+    }
+
+    public function thumbnailUrl(bool $absolute = false): ?string
+    {
+        $size = config('image.sizes.thumb', ['w' => 400, 'h' => 300]);
+
+        return $this->proxyUrl($size['w'] ?? null, $size['h'] ?? null, absolute: $absolute);
+    }
+
+    public function galleryUrl(bool $absolute = false): ?string
+    {
+        $size = config('image.sizes.gallery', ['w' => 1200, 'h' => null]);
+
+        return $this->proxyUrl($size['w'] ?? null, $size['h'] ?? null, absolute: $absolute);
+    }
+
     public static function resolveLegacyUrl(?string $path): ?string
     {
         if (blank($path)) {
@@ -100,6 +135,14 @@ class Image extends Model
             return null;
         }
 
-        return $baseUrl . '/' . basename($path);
+        $normalized = ltrim($path, '/');
+
+        if (str_starts_with($normalized, 'upload/')) {
+            $relative = substr($normalized, strlen('upload/'));
+
+            return $baseUrl.'/'.$relative;
+        }
+
+        return $baseUrl.'/'.basename($path);
     }
 }
