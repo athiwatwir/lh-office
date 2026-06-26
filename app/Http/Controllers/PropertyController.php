@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PropertyCheckCodeRequest;
 use App\Http\Requests\PropertyIndexRequest;
 use App\Http\Requests\PropertyIsactiveRequest;
 use App\Http\Requests\PropertyIsrecommendRequest;
@@ -14,6 +15,7 @@ use App\Models\User;
 use App\Models\Zone;
 use App\Services\ActiveAgentService;
 use App\Services\PropertyAddressService;
+use App\Services\PropertyDeletionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -120,7 +122,7 @@ class PropertyController extends Controller
     public function edit(string $property): View
     {
         $item = Asset::query()
-            ->with(['asset_type', 'zone', 'user', 'address', 'asset_images.image'])
+            ->with(['asset_type', 'zone', 'user', 'address', 'agent', 'asset_images.image'])
             ->findOrFail($property);
 
         return view('pages.property.edit', [
@@ -144,6 +146,37 @@ class PropertyController extends Controller
         return redirect()
             ->route('property.edit', $item)
             ->with('success', 'บันทึกทรัพย์สินเรียบร้อยแล้ว');
+    }
+
+    public function checkCode(PropertyCheckCodeRequest $request): JsonResponse
+    {
+        $excludeId = $request->excludeId();
+        $agentId = $excludeId
+            ? Asset::query()->whereKey($excludeId)->value('agent_id')
+            : $this->activeAgent->id();
+
+        if ($agentId === null) {
+            return response()->json([
+                'available' => false,
+                'message' => 'กรุณาเลือกเอเจนต์ที่ใช้งานก่อนตรวจสอบรหัส',
+            ]);
+        }
+
+        $exists = Asset::query()
+            ->where('agent_id', $agentId)
+            ->where('code', $request->code())
+            ->when($excludeId, fn ($query) => $query->where('id', '!=', $excludeId))
+            ->exists();
+
+        $agentName = Agent::query()->whereKey($agentId)->value('name');
+
+        return response()->json([
+            'available' => ! $exists,
+            'agent_name' => $agentName,
+            'message' => $exists
+                ? 'รหัสทรัพย์นี้ถูกใช้แล้วในเอเจนต์นี้'
+                : 'รหัสทรัพย์นี้ใช้ได้',
+        ]);
     }
 
     public function updateIsrecommend(PropertyIsrecommendRequest $request, string $property): JsonResponse
@@ -200,14 +233,21 @@ class PropertyController extends Controller
         ]);
     }
 
-    public function destroy(string $property): RedirectResponse
+    public function destroy(string $property): RedirectResponse|JsonResponse
     {
         $item = Asset::query()->findOrFail($property);
-        $item->delete();
+
+        app(PropertyDeletionService::class)->permanentlyDelete($item);
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'message' => 'ลบทรัพย์สินถาวรเรียบร้อยแล้ว',
+            ]);
+        }
 
         return redirect()
             ->route('property.index')
-            ->with('success', 'ลบทรัพย์สินเรียบร้อยแล้ว');
+            ->with('success', 'ลบทรัพย์สินถาวรเรียบร้อยแล้ว');
     }
 
     /**
@@ -217,6 +257,8 @@ class PropertyController extends Controller
     {
         $agentsQuery = User::query()
             ->where('isseller', 'Y')
+            ->orderByRaw('seq IS NULL')
+            ->orderBy('seq')
             ->orderBy('firstname')
             ->orderBy('lastname');
 
@@ -228,6 +270,7 @@ class PropertyController extends Controller
             'assetTypes' => AssetType::query()->orderBy('seq')->orderBy('name')->get(['id', 'name']),
             'zones' => Zone::query()->orderBy('name')->get(['id', 'name']),
             'agents' => $agentsQuery->get(['id', 'firstname', 'lastname', 'usercode']),
+            'activeAgent' => $this->activeAgent->agent(),
         ];
     }
 }

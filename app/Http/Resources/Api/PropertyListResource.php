@@ -2,12 +2,14 @@
 
 namespace App\Http\Resources\Api;
 
+use App\Http\Resources\Api\Concerns\FormatsApiImageUrls;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin \App\Models\Asset */
 class PropertyListResource extends JsonResource
 {
+    use FormatsApiImageUrls;
     /**
      * @return array<string, mixed>
      */
@@ -54,7 +56,7 @@ class PropertyListResource extends JsonResource
                 'amphur' => $this->address->amphur,
             ],
             'is_recommend' => $this->isrecommend === 'Y',
-            'thumbnail_url' => $defaultImage?->image?->thumbnailUrl(absolute: true),
+            'thumbnail_url' => $this->apiImageUrl($defaultImage?->image?->thumbnailUrl(absolute: false)),
             'images_count' => $this->whenCounted('asset_images'),
             'created_at' => $createdAt?->toIso8601String(),
         ];

@@ -2,12 +2,14 @@
 
 namespace App\Http\Resources\Api;
 
+use App\Http\Resources\Api\Concerns\FormatsApiImageUrls;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin \App\Models\Asset */
 class PropertyDetailResource extends JsonResource
 {
+    use FormatsApiImageUrls;
     /**
      * @return array<string, mixed>
      */
@@ -29,7 +31,7 @@ class PropertyDetailResource extends JsonResource
                 'id' => $this->agent?->id,
                 'name' => $this->agent?->name,
                 'code' => $this->agent?->code,
-                'logo_url' => $this->agent?->logo_url,
+                'logo_url' => $this->apiImageUrl($this->agent?->logo_url),
             ]),
             'user' => $this->whenLoaded('user', fn () => $this->user
                 ? new UserResource($this->user)

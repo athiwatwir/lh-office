@@ -21,6 +21,7 @@
 
 <div class="flex justify-end" x-data="{
         moveOpen: false,
+        deleteOpen: false,
         loading: false,
         isRecommended: @js(($property->isrecommend ?? 'N') === 'Y'),
         agents: @js($agentsPayload),
@@ -34,6 +35,45 @@
         closeMove() {
             if (! this.loading) {
                 this.moveOpen = false;
+            }
+        },
+        openDelete() {
+            this.deleteOpen = true;
+        },
+        closeDelete() {
+            if (! this.loading) {
+                this.deleteOpen = false;
+            }
+        },
+        async confirmDelete() {
+            if (this.loading) {
+                return;
+            }
+
+            this.loading = true;
+
+            try {
+                const response = await fetch(@js(route('property.destroy', $property)), {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content ?? '',
+                    },
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (! response.ok) {
+                    throw new Error(data.message ?? 'ลบทรัพย์สินไม่สำเร็จ');
+                }
+
+                Alpine.store('notify').success(data.message ?? 'ลบทรัพย์สินถาวรเรียบร้อยแล้ว');
+                this.deleteOpen = false;
+                this.$el.closest('tr')?.remove();
+            } catch (error) {
+                Alpine.store('notify').error(error.message ?? 'ลบทรัพย์สินไม่สำเร็จ');
+            } finally {
+                this.loading = false;
             }
         },
         async transfer(agentId) {
@@ -142,14 +182,10 @@
                 ย้าย Agent
             </button>
 
-            <form method="POST" action="{{ route('property.destroy', $property) }}" onsubmit="return confirm('ยืนยันการลบทรัพย์สินนี้?')">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-theme-xs font-medium text-error-600 hover:bg-error-50" role="menuitem">
-                    <i class="lni lni-trash-can text-base"></i>
-                    ลบ
-                </button>
-            </form>
+            <button type="button" @click="openDelete()" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-theme-xs font-medium text-error-600 hover:bg-error-50" role="menuitem">
+                <i class="lni lni-trash-can text-base"></i>
+                ลบ
+            </button>
         </x-slot>
     </x-common.table-dropdown>
 
@@ -181,6 +217,34 @@
                         </span>
                     </button>
                 </template>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="deleteOpen" x-cloak @keydown.escape.window="closeDelete()" class="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-4 sm:p-5">
+        <div @click="closeDelete()" class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px]"></div>
+
+        <div @click.stop class="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-theme-xl">
+            <div class="border-b border-gray-200 px-5 py-4">
+                <h3 class="text-base font-semibold text-gray-800">ลบทรัพย์สินถาวร</h3>
+                <p class="mt-1 text-theme-xs text-gray-500">{{ $property->code }} — {{ $property->name }}</p>
+            </div>
+
+            <div class="px-5 py-4">
+                <p class="text-sm text-gray-700">
+                    การลบนี้จะลบข้อมูลทรัพย์สิน รูปภาพ และข้อมูลที่เกี่ยวข้องออกจากระบบถาวร
+                    <span class="font-medium text-error-600">ไม่สามารถกู้คืนได้</span>
+                </p>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 border-t border-gray-200 px-5 py-4">
+                <button type="button" @click="closeDelete()" :disabled="loading" class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50">
+                    ยกเลิก
+                </button>
+                <button type="button" @click="confirmDelete()" :disabled="loading" class="inline-flex h-10 items-center justify-center rounded-lg bg-error-500 px-4 text-sm font-medium text-white transition hover:bg-error-600 disabled:opacity-50">
+                    <span x-show="! loading">ลบถาวร</span>
+                    <span x-show="loading">กำลังลบ...</span>
+                </button>
             </div>
         </div>
     </div>

@@ -19,11 +19,12 @@ $ynFields = [
     <section>
         <h4 class="mb-4 text-base font-semibold text-gray-800">ข้อมูลหลัก</h4>
         <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <div>
-                <label for="code" class="mb-1.5 block text-theme-sm font-medium text-gray-700">รหัสทรัพย์ <span class="text-error-500">*</span></label>
-                <input id="code" type="text" name="code" value="{{ old('code', $item->code) }}" required class="{{ $inputClass }} @error('code') border-error-500 @enderror" />
-                @error('code')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
-            </div>
+            <x-property.code-input
+                :value="old('code', $item->code)"
+                :property-id="$item->exists ? $item->id : null"
+                :agent-name="($item->exists ? $item->agent?->name : null) ?? ($activeAgent->name ?? null)"
+                :input-class="$inputClass"
+            />
 
             <div>
                 <label for="asset_type_id" class="mb-1.5 block text-theme-sm font-medium text-gray-700">ประเภททรัพย์ <span class="text-error-500">*</span></label>
@@ -64,7 +65,7 @@ $ynFields = [
             </div>
 
             <div class="">
-                <x-property.agent-picker :agents="$agents" :selected="old('user_id', $item->user_id)" />
+                <x-property.agent-picker :agents="$agents" :selected="old('user_id', $item->user_id)" required />
                 @error('user_id')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
             </div>
 
@@ -98,11 +99,4 @@ $ynFields = [
 
 </div>
 
-<div class="mt-6 flex flex-wrap items-center gap-3">
-    <button type="submit" class="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600">
-        บันทึก
-    </button>
-    <a href="{{ route('property.index') }}" class="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 shadow-theme-xs transition hover:bg-gray-50">
-        ยกเลิก
-    </a>
-</div>
+<x-form.actions :cancel-url="route('property.index')" />

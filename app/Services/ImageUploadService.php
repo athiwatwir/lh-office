@@ -62,7 +62,7 @@ class ImageUploadService
             return null;
         }
 
-        return asset($this->publicPath($filename, $directory));
+        return '/'.ltrim($this->publicPath($filename, $directory), '/');
     }
 
     public function replace(

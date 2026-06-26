@@ -20,11 +20,4 @@
     </div>
 </div>
 
-<div class="mt-6">
-    <button
-        type="submit"
-        class="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600"
-    >
-        ตั้งรหัสผ่านใหม่
-    </button>
-</div>
+<x-form.actions :cancel-url="route('user.index')" submit-label="ตั้งรหัสผ่านใหม่" />

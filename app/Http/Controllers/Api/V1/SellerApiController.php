@@ -15,6 +15,8 @@ class SellerApiController extends Controller
     public function index(): AnonymousResourceCollection
     {
         $agents = User::query()
+            ->with('image')
+            ->orderBy('seq')
             ->orderBy('firstname')
             ->where('isseller', 'Y')
             ->get();

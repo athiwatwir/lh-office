@@ -2,12 +2,15 @@
 
 namespace App\Http\Resources\Api;
 
+use App\Http\Resources\Api\Concerns\FormatsApiImageUrls;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin \App\Models\AssetImage */
 class PropertyImageResource extends JsonResource
 {
+    use FormatsApiImageUrls;
+
     /**
      * @return array<string, mixed>
      */
@@ -15,7 +18,7 @@ class PropertyImageResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'url' => $this->image?->galleryUrl(absolute: true),
+            'url' => $this->apiImageUrl($this->image?->galleryUrl(absolute: false)),
             'is_default' => $this->isdefault === 'Y',
             'seq' => $this->seq,
         ];

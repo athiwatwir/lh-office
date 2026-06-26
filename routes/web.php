@@ -42,6 +42,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('active-agent', [ActiveAgentController::class, 'destroy'])->name('active-agent.destroy');
     Route::post('editor/upload-image', [EditorImageController::class, 'store'])->name('editor.upload-image');
 
+    Route::patch('user/reorder', [UserController::class, 'reorder'])->name('user.reorder');
+
     Route::resources([
         'propertyRequest' => PropertyRequestController::class,
         'property' => PropertyController::class,
@@ -55,6 +57,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('property-views', [PropertyViewRankingController::class, 'index'])->name('property.views.index');
     Route::put('user/{user}/password', [UserController::class, 'updatePassword'])->name('user.password.update');
+    Route::get('property/check-code', [PropertyController::class, 'checkCode'])->name('property.check-code');
     Route::patch('property/{property}/isactive', [PropertyController::class, 'updateIsactive'])->name('property.isactive.update');
     Route::patch('property/{property}/isrecommend', [PropertyController::class, 'updateIsrecommend'])->name('property.isrecommend.update');
     Route::patch('property/{property}/agent', [PropertyController::class, 'transferAgent'])->name('property.agent.update');

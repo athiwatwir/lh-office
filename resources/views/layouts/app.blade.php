@@ -114,6 +114,13 @@
                     }, 200);
                 },
             });
+
+            @if (session('success'))
+            Alpine.store('notify').success(@js(session('success')));
+            @endif
+            @if (session('error'))
+            Alpine.store('notify').error(@js(session('error')));
+            @endif
         });
 
     </script>

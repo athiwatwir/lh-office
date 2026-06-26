@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UserPasswordRequest;
+use App\Http\Requests\UserReorderRequest;
 use App\Http\Requests\UserRequest;
 use App\Models\User;
 use App\Services\UserImageService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -22,10 +24,11 @@ class UserController extends Controller
         $data = User::query()
             ->with('image')
             ->withCount('assets')
-            // ->where('isseller', 'Y')
+            ->orderByRaw('seq IS NULL')
+            ->orderBy('seq')
             ->orderBy('firstname')
             ->orderBy('lastname')
-            ->paginate(20);
+            ->get();
 
         return view('pages.user.index', [
             'title' => 'ตัวแทนขาย/ผู้ใช้งานระบบ',
@@ -57,7 +60,10 @@ class UserController extends Controller
             $payload['password'] = Hash::make($request->validated('password'));
         }
 
-        $user = User::query()->create($payload);
+        $user = User::query()->create([
+            ...$payload,
+            'seq' => (int) User::query()->max('seq') + 10,
+        ]);
 
         if ($request->hasFile('pic')) {
             $this->userImage->attach($user, $request->file('pic'));
@@ -111,6 +117,19 @@ class UserController extends Controller
         return redirect()
             ->route('user.edit', $item)
             ->with('success', 'ตั้งรหัสผ่านใหม่เรียบร้อยแล้ว');
+    }
+
+    public function reorder(UserReorderRequest $request): JsonResponse
+    {
+        foreach ($request->validated('order') as $index => $userId) {
+            User::query()
+                ->whereKey($userId)
+                ->update(['seq' => ($index + 1) * 10]);
+        }
+
+        return response()->json([
+            'message' => 'บันทึกลำดับเรียบร้อยแล้ว',
+        ]);
     }
 
     public function destroy(string $user): RedirectResponse

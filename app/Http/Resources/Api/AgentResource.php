@@ -2,12 +2,15 @@
 
 namespace App\Http\Resources\Api;
 
+use App\Http\Resources\Api\Concerns\FormatsApiImageUrls;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin \App\Models\Agent */
 class AgentResource extends JsonResource
 {
+    use FormatsApiImageUrls;
+
     /**
      * @return array<string, mixed>
      */
@@ -17,7 +20,7 @@ class AgentResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'code' => $this->code,
-            'logo_url' => $this->logo_url,
+            'logo_url' => $this->apiImageUrl($this->logo_url),
         ];
     }
 }

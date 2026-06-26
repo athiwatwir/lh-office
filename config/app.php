@@ -130,4 +130,11 @@ return [
     */
     'legacy_image_base_url' => env('LEGACY_IMAGE_BASE_URL', 'https://lovethaihome.com/img/upload'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Public image base URL for API responses
+    |--------------------------------------------------------------------------
+    */
+    'img_url' => env('IMG_URL', ''),
+
 ];

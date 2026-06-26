@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Asset;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Services\ActiveAgentService;
 
 class PropertyRequest extends FormRequest
 {
@@ -18,13 +20,18 @@ class PropertyRequest extends FormRequest
     public function rules(): array
     {
         $propertyId = $this->route('property');
+        $agentId = $propertyId
+            ? Asset::query()->whereKey($propertyId)->value('agent_id')
+            : app(ActiveAgentService::class)->id();
 
         return [
             'code' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('assets', 'code')->ignore($propertyId),
+                Rule::unique('assets', 'code')
+                    ->where(fn ($query) => $query->where('agent_id', $agentId))
+                    ->ignore($propertyId),
             ],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],

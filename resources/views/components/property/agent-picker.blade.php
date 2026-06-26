@@ -2,28 +2,52 @@
 'agents',
 'selected' => '',
 'withPhotos' => true,
+'required' => false,
 ])
 
 @php
+$selectedId = (string) old('user_id', $selected);
 $agentsPayload = $agents->map(fn ($agent) => [
-'id' => $agent->id,
+'id' => (string) $agent->id,
 'name' => $agent->name,
 'usercode' => $agent->usercode,
 'photo' => $withPhotos ? $agent->profile_image_url : null,
+'initial' => mb_substr($agent->firstname ?? '', 0, 1) ?: '?',
 ])->values();
 @endphp
 
 <div x-data="{
         open: false,
-        selectedId: @js($selected),
+        query: '',
+        selectedId: @js($selectedId),
         agents: @js($agentsPayload),
         init() {
             this.$watch('open', value => {
                 document.body.style.overflow = value ? 'hidden' : 'unset';
+
+                if (value) {
+                    this.$nextTick(() => this.$refs.searchInput?.focus());
+                } else {
+                    this.query = '';
+                }
             });
         },
         get selectedAgent() {
-            return this.agents.find(agent => agent.id === this.selectedId) ?? null;
+            return this.agents.find((agent) => String(agent.id) === String(this.selectedId)) ?? null;
+        },
+        get filteredAgents() {
+            const term = this.query.trim().toLowerCase();
+
+            if (term === '') {
+                return this.agents;
+            }
+
+            return this.agents.filter((agent) => {
+                const name = (agent.name ?? '').toLowerCase();
+                const usercode = (agent.usercode ?? '').toLowerCase();
+
+                return name.includes(term) || usercode.includes(term);
+            });
         },
         selectAgent(id) {
             this.selectedId = id;
@@ -34,15 +58,21 @@ $agentsPayload = $agents->map(fn ($agent) => [
             this.open = false;
         },
     }" {{ $attributes->merge(['class' => '']) }}>
-    <label class="mb-1.5 block text-theme-sm font-medium text-gray-700">ตัวแทน </label>
+    <label class="mb-1.5 block text-theme-sm font-medium text-gray-700">
+        ตัวแทน
+        @if ($required)
+            <span class="text-error-500">*</span>
+        @endif
+    </label>
 
-    <input type="hidden" name="user_id" x-model="selectedId">
+    <input type="hidden" name="user_id" x-model="selectedId" @if ($required) required @endif>
 
-    <button type="button" @click="open = true" class="flex h-11 w-full items-center justify-between gap-3 rounded-lg border border-gray-300 bg-white px-3 text-left text-sm text-gray-800 shadow-theme-xs transition hover:border-brand-300 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10">
+    <button type="button" @click="open = true" class="flex h-11 w-full items-center justify-between gap-3 rounded-lg border border-gray-300 bg-white px-3 text-left text-sm text-gray-800 shadow-theme-xs transition hover:border-brand-300 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 @error('user_id') border-error-500 @enderror">
         <span class="flex min-w-0 items-center gap-3">
             @if ($withPhotos)
-            <span class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100">
-                <img x-show="selectedAgent?.photo" :src="selectedAgent?.photo" alt="" class="h-full w-full object-cover">
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100 text-sm font-semibold text-gray-400">
+                <img x-show="selectedAgent?.photo" x-cloak :src="selectedAgent?.photo" alt="" class="h-full w-full object-cover">
+                <span x-show="selectedAgent && !selectedAgent.photo" x-cloak x-text="selectedAgent?.initial"></span>
             </span>
             @endif
 
@@ -67,19 +97,50 @@ $agentsPayload = $agents->map(fn ($agent) => [
                 </button>
             </div>
 
+            <div class="border-b border-gray-200 px-5 py-3 sm:px-6">
+                <div class="relative">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    <input
+                        x-ref="searchInput"
+                        type="search"
+                        x-model="query"
+                        placeholder="ค้นหาชื่อหรือรหัสตัวแทน..."
+                        class="h-11 w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10"
+                        @keydown.escape.stop="open = false"
+                    />
+                </div>
+            </div>
+
             <div class="overflow-y-auto p-3 sm:p-4">
-                <button type="button" @click="clearAgent()" class="mb-2 flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition hover:border-gray-200 hover:bg-gray-50" :class="selectedId === '' ? 'border-brand-200 bg-brand-50' : ''">
+                @unless ($required)
+                <button
+                    type="button"
+                    x-show="query.trim() === ''"
+                    @click="clearAgent()"
+                    class="mb-2 flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition hover:border-gray-200 hover:bg-gray-50"
+                    :class="selectedId === '' ? 'border-brand-200 bg-brand-50' : ''"
+                >
                     @if ($withPhotos)
                     <span class="flex h-12 w-12 shrink-0 rounded-full bg-gray-100"></span>
                     @endif
                     <span class="text-sm font-medium text-gray-800">ทั้งหมด</span>
                 </button>
+                @endunless
 
-                <template x-for="agent in agents" :key="agent.id">
-                    <button type="button" @click="selectAgent(agent.id)" class="flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition hover:border-gray-200 hover:bg-gray-50" :class="selectedId === agent.id ? 'border-brand-200 bg-brand-50' : ''">
+                <p x-show="filteredAgents.length === 0" x-cloak class="px-3 py-8 text-center text-sm text-gray-500">
+                    ไม่พบตัวแทนที่ตรงกับ "<span x-text="query"></span>"
+                </p>
+
+                <template x-for="agent in filteredAgents" :key="agent.id">
+                    <button type="button" @click="selectAgent(agent.id)" class="flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition hover:border-gray-200 hover:bg-gray-50" :class="String(selectedId) === String(agent.id) ? 'border-brand-200 bg-brand-50' : ''">
                         @if ($withPhotos)
-                        <span class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100">
-                            <img x-show="agent.photo" :src="agent.photo" :alt="agent.name" class="h-full w-full object-cover">
+                        <span class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100 text-sm font-semibold text-gray-400">
+                            <img x-show="agent.photo" x-cloak :src="agent.photo" :alt="agent.name" class="h-full w-full object-cover">
+                            <span x-show="!agent.photo" x-cloak x-text="agent.initial"></span>
                         </span>
                         @endif
 

@@ -4,14 +4,6 @@
     <x-common.page-breadcrumb :pageTitle="$title" />
 
     <div class="space-y-6">
-        @if (session('success'))
-            <x-ui.alert variant="success" :title="session('success')" />
-        @endif
-
-        @if (session('error'))
-            <x-ui.alert variant="error" :title="session('error')" />
-        @endif
-
         <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white">
             <div class="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <div>

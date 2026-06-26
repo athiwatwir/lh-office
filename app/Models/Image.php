@@ -71,7 +71,7 @@ class Image extends Model
 
         if (str_starts_with($normalized, 'upload/')) {
             if (is_file(public_path($normalized))) {
-                return asset($normalized);
+                return '/'.$normalized;
             }
 
             return self::resolveLegacyUrl($storagePath);

@@ -1,6 +1,6 @@
 <div
     x-data
-    class="pointer-events-none fixed end-4 bottom-6 z-999999 flex w-full max-w-sm flex-col gap-3"
+    class="pointer-events-none fixed top-20 end-4 z-999999 flex w-full max-w-sm flex-col items-end gap-3"
     aria-live="polite"
     aria-atomic="true"
 >
@@ -8,12 +8,12 @@
         <div
             x-show="item.visible"
             x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="translate-y-2 opacity-0"
+            x-transition:enter-start="-translate-y-2 opacity-0"
             x-transition:enter-end="translate-y-0 opacity-100"
             x-transition:leave="transition ease-in duration-200"
             x-transition:leave-start="translate-y-0 opacity-100"
-            x-transition:leave-end="translate-y-2 opacity-0"
-            class="pointer-events-auto flex items-start gap-3 rounded-xl border p-4 shadow-theme-lg"
+            x-transition:leave-end="-translate-y-2 opacity-0"
+            class="pointer-events-auto flex w-full items-start gap-3 rounded-xl border p-4 shadow-theme-lg"
             :class="{
                 'border-success-200 bg-success-50': item.variant === 'success',
                 'border-error-200 bg-error-50': item.variant === 'error',

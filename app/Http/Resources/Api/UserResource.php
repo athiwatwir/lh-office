@@ -2,12 +2,15 @@
 
 namespace App\Http\Resources\Api;
 
+use App\Http\Resources\Api\Concerns\FormatsApiImageUrls;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin \App\Models\User */
 class UserResource extends JsonResource
 {
+    use FormatsApiImageUrls;
+
     /**
      * @return array<string, mixed>
      */
@@ -20,7 +23,8 @@ class UserResource extends JsonResource
             'phone' => $this->phone,
             'email' => $this->email,
             'lineid' => $this->lineid,
-            'profile_image_url' => $this->profile_image_url,
+            'profile_image_url' => $this->apiImageUrl($this->profile_image_url),
+            'seq' => $this->seq,
         ];
     }
 }

@@ -69,6 +69,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'created' => 'datetime',
         'updated' => 'datetime',
+        'seq' => 'int',
     ];
 
     protected $hidden = [
@@ -98,7 +99,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'updated',
         'verifycode',
         'position',
-        'image_id'
+        'image_id',
+        'seq'
     ];
 
     public function getNameAttribute(): string
@@ -152,7 +154,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return null;
         }
 
-        if (str_starts_with($storagePath, self::PIC_DIRECTORY.'/')) {
+        if (str_starts_with($storagePath, self::PIC_DIRECTORY . '/')) {
             return app(ImageUploadService::class)->url(basename($storagePath), self::PIC_DIRECTORY)
                 ?? $image->url;
         }

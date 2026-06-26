@@ -259,6 +259,7 @@ class Asset extends Model
             'issalerent',
             'issellout',
             'issaledown',
+            'youtube_link',
         ]);
     }
 }

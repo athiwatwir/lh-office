@@ -20,12 +20,5 @@
         </div>
     </div>
 
-    <div class="mt-6 flex flex-wrap items-center gap-3">
-        <button type="submit" class="inline-flex h-11 items-center justify-center rounded-lg bg-brand-500 px-5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600">
-            บันทึก
-        </button>
-        <a href="{{ route('zone.index') }}" class="inline-flex h-11 items-center justify-center rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 shadow-theme-xs transition hover:bg-gray-50">
-            ยกเลิก
-        </a>
-    </div>
+    <x-form.actions :cancel-url="route('zone.index')" />
 </form>

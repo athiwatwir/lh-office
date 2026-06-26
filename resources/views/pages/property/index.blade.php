@@ -41,14 +41,6 @@
             this.detailHtml = '';
         },
     }" class="space-y-6">
-    @if (session('success'))
-    <x-ui.alert variant="success" :title="session('success')" />
-    @endif
-
-    @if (session('error'))
-    <x-ui.alert variant="error" :title="session('error')" />
-    @endif
-
     <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white">
         <div class="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div>
@@ -165,7 +157,7 @@
                         </th>
 
                         <th class="px-4 py-3 text-center font-normal">
-                            <span class="text-theme-sm text-gray-500">รูป</span>
+                            <span class="text-theme-sm text-gray-500"></span>
                         </th>
                         <th class="px-4 py-3 text-start font-normal">
                             <span class="text-theme-sm text-gray-500">ราคา</span>
@@ -218,15 +210,23 @@
                         </td>
 
                         <td class="px-3 py-2 text-center">
-                            @if ($item->asset_images_count > 0)
-                            <span title="มีรูป {{ number_format($item->asset_images_count) }} รูป" class="inline-flex text-success-600">
-                                <i class="lni lni-photos text-lg" aria-hidden="true"></i>
-                            </span>
-                            @else
-                            <span title="ไม่มีรูป" class="inline-flex text-gray-300">
-                                <i class="lni lni-photos text-lg" aria-hidden="true"></i>
-                            </span>
-                            @endif
+                            <div class="inline-flex items-center justify-center gap-2">
+                                @if ($item->asset_images_count > 0)
+                                <span title="มีรูป {{ number_format($item->asset_images_count) }} รูป" class="inline-flex text-success-600">
+                                    <i class="lni lni-photos text-lg" aria-hidden="true"></i>
+                                </span>
+                                @else
+                                <span title="ไม่มีรูป" class="inline-flex text-gray-300">
+                                    <i class="lni lni-photos text-lg" aria-hidden="true"></i>
+                                </span>
+                                @endif
+
+                                @if (filled($item->youtube_link))
+                                <a href="{{ $item->youtube_link }}" target="_blank" rel="noopener noreferrer" title="มีวิดีโอ YouTube" class="inline-flex text-error-600 transition hover:text-error-700">
+                                    <i class="lni lni-youtube text-lg" aria-hidden="true"></i>
+                                </a>
+                                @endif
+                            </div>
                         </td>
 
                         <td class="px-3 py-2">
