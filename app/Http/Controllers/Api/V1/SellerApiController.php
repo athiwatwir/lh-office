@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\UserResource;
 use App\Models\User;
-use Illuminate\Http\Request;
+use App\Services\PropertyApiImageWarmer;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class SellerApiController extends Controller
 {
-    //
+    public function __construct(
+        private readonly PropertyApiImageWarmer $imageWarmer,
+    ) {}
 
     public function index(): AnonymousResourceCollection
     {
@@ -20,6 +22,8 @@ class SellerApiController extends Controller
             ->orderBy('firstname')
             ->where('isseller', 'Y')
             ->get();
+
+        $this->imageWarmer->warmUserProfileImages($agents);
 
         return UserResource::collection($agents);
     }

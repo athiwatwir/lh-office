@@ -26,6 +26,34 @@ class PropertyApiImageWarmer
         }
     }
 
+    /**
+     * @param  iterable<int, \App\Models\AssetType>  $assetTypes
+     */
+    public function warmAssetTypeImages(iterable $assetTypes): void
+    {
+        foreach ($assetTypes as $assetType) {
+            $image = $assetType->image;
+
+            if ($image !== null) {
+                $this->warmGallery($image, 'api_property_types');
+            }
+        }
+    }
+
+    /**
+     * @param  iterable<int, \App\Models\User>  $users
+     */
+    public function warmUserProfileImages(iterable $users): void
+    {
+        foreach ($users as $user) {
+            $image = $user->image;
+
+            if ($image !== null) {
+                $this->warmGallery($image, 'api_sellers');
+            }
+        }
+    }
+
     public function warmDetailImages(Asset $asset): void
     {
         if (! $asset->relationLoaded('asset_images')) {

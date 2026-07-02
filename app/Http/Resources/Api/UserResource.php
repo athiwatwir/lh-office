@@ -23,7 +23,7 @@ class UserResource extends JsonResource
             'phone' => $this->phone,
             'email' => $this->email,
             'lineid' => $this->lineid,
-            'profile_image_url' => $this->apiImageUrl($this->profile_image_url),
+            'profile_image_url' => $this->apiImageUrl($this->image?->galleryUrl(absolute: false)),
             'seq' => $this->seq,
         ];
     }

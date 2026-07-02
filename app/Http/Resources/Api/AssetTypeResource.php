@@ -20,7 +20,7 @@ class AssetTypeResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'seq' => $this->seq,
-            'image_url' => $this->apiImageUrl($this->image_url),
+            'image_url' => $this->apiImageUrl($this->image?->galleryUrl(absolute: false)),
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

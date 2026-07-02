@@ -10,6 +10,7 @@ class UserImageService
 {
     public function __construct(
         private readonly ImageUploadService $imageUpload,
+        private readonly ImageProxyService $imageProxy,
     ) {}
 
     public function attach(User $user, UploadedFile $file): void
@@ -25,6 +26,8 @@ class UserImageService
         ]);
 
         $user->update(['image_id' => $image->id]);
+
+        $this->imageProxy->warmAllVariants($image, 'user_upload');
     }
 
     public function replace(User $user, UploadedFile $file): void

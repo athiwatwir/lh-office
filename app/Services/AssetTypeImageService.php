@@ -10,6 +10,7 @@ class AssetTypeImageService
 {
     public function __construct(
         private readonly ImageUploadService $imageUpload,
+        private readonly ImageProxyService $imageProxy,
     ) {}
 
     public function attach(AssetType $assetType, UploadedFile $file): void
@@ -25,6 +26,8 @@ class AssetTypeImageService
         ]);
 
         $assetType->update(['image_id' => $image->id]);
+
+        $this->imageProxy->warmAllVariants($image, 'property_type_upload');
     }
 
     public function replace(AssetType $assetType, UploadedFile $file): void
