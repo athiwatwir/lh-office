@@ -9,10 +9,7 @@
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800">{{ $title }}</h3>
                     <p class="mt-1 text-sm text-gray-500">
-                        ทั้งหมด {{ number_format($data->total()) }} รายการ
-                        @if ($data->total() > 0)
-                            (แสดง {{ $data->firstItem() }}–{{ $data->lastItem() }})
-                        @endif
+                        ทั้งหมด {{ number_format($data->count()) }} รายการ · ลากแถวเพื่อเรียงลำดับการแสดงผล
                     </p>
                 </div>
 
@@ -66,25 +63,67 @@
                     <table class="min-w-full">
                         <thead>
                             <tr class="border-y border-gray-100">
-                                <th class="px-5 py-3 text-start font-normal sm:px-6"><span class="text-theme-sm text-gray-500">ลำดับ</span></th>
+                                <th class="w-10 px-3 py-3 text-start font-normal sm:px-4"><span class="sr-only">ลากเรียงลำดับ</span></th>
+                                <th class="w-16 px-3 py-3 text-start font-normal sm:px-4"><span class="text-theme-sm text-gray-500">ลำดับ</span></th>
+                                <th class="w-20 px-3 py-3 text-start font-normal sm:px-4"><span class="text-theme-sm text-gray-500">ปก</span></th>
                                 <th class="px-4 py-3 text-start font-normal"><span class="text-theme-sm text-gray-500">หัวข้อบทความ</span></th>
                                 <th class="px-4 py-3 text-start font-normal"><span class="text-theme-sm text-gray-500">ประเภท</span></th>
+                                <th class="px-4 py-3 text-start font-normal"><span class="text-theme-sm text-gray-500">Agent</span></th>
                                 <th class="px-4 py-3 text-start font-normal"><span class="text-theme-sm text-gray-500">สถานะ</span></th>
                                 <th class="px-4 py-3 text-start font-normal"><span class="text-theme-sm text-gray-500">อัปเดตล่าสุด</span></th>
                                 <th class="px-4 py-3 text-end font-normal"><span class="text-theme-sm text-gray-500">จัดการ</span></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody
+                            class="divide-y divide-gray-100"
+                            x-data="articleSortable({
+                                reorderUrl: @js(route('article.reorder', [], false)),
+                                csrf: document.querySelector('meta[name=csrf-token]')?.content ?? '',
+                            })"
+                            x-ref="tbody"
+                            @dragover.prevent="onDragOver($event)"
+                            @drop.prevent="onDrop($event)"
+                        >
                             @foreach ($data as $item)
                                 @php $updatedAt = $item->updated ?? $item->updated_at ?? $item->created; @endphp
-                                <tr class="hover:bg-gray-50/60">
-                                    <td class="px-5 py-4 sm:px-6"><span class="text-theme-sm font-medium text-gray-800">{{ $item->seq ?? '-' }}</span></td>
+                                <tr class="hover:bg-gray-50/60" data-article-id="{{ $item->id }}">
+                                    <td class="px-3 py-4 sm:px-4">
+                                        <span
+                                            data-drag-handle
+                                            draggable="true"
+                                            class="flex h-9 w-9 cursor-grab items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 active:cursor-grabbing"
+                                            title="ลากเพื่อเรียงลำดับ"
+                                            @dragstart.stop="onDragStart($event)"
+                                            @dragend="onDragEnd()"
+                                        >
+                                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M7.22 5.22a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1-1.06 1.06L8 6.56 6.78 7.78a.75.75 0 0 1-1.06-1.06l2.25-2.25Zm-1.06 4.5a.75.75 0 0 1 1.06 0L8 12.56l1.22-1.22a.75.75 0 1 1 1.06 1.06l-2.25 2.25a.75.75 0 0 1-1.06 0l-2.25-2.25a.75.75 0 0 1 1.06-1.06l1.22 1.22 1.22-1.22Zm4.5-1.06a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1-1.06 1.06L12 9.56l-1.22 1.22a.75.75 0 0 1-1.06-1.06l2.25-2.25a.75.75 0 0 1 1.06 0l-1.22 1.22 1.22 1.22Zm-1.06 4.5a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1-1.06 1.06L12 14.56l-1.22 1.22a.75.75 0 0 1-1.06-1.06l2.25-2.25a.75.75 0 0 1 1.06 0l-1.22 1.22 1.22-1.22Z" clip-rule="evenodd" />
+                                            </svg>
+                                        </span>
+                                    </td>
+                                    <td class="px-3 py-4 sm:px-4"><span data-seq-value class="text-theme-sm font-medium text-gray-500">{{ $item->seq ?? '—' }}</span></td>
+                                    <td class="px-3 py-4 sm:px-4">
+                                        <div class="flex h-12 w-16 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                                            @if ($item->cover_image_url)
+                                                <img src="{{ $item->cover_image_url }}" alt="{{ $item->name }}" class="h-full w-full object-cover">
+                                            @else
+                                                <span class="text-theme-xs text-gray-400">—</span>
+                                            @endif
+                                        </div>
+                                    </td>
                                     <td class="max-w-md px-4 py-4">
                                         <a href="{{ route('article.show', $item) }}" class="line-clamp-2 text-theme-sm font-medium text-brand-600 hover:text-brand-700 hover:underline">
                                             {{ $item->name }}
                                         </a>
                                     </td>
                                     <td class="px-4 py-4"><span class="text-theme-sm text-gray-700">{{ $item->category?->name ?? '-' }}</span></td>
+                                    <td class="px-4 py-4">
+                                        @if ($item->isVisibleToAllAgents())
+                                            <span class="text-theme-sm text-gray-700">ทุก Agent</span>
+                                        @else
+                                            <span class="text-theme-sm text-gray-700">{{ $item->agent?->name ?? '-' }}</span>
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-4">
                                         @if (($item->isactive ?? 'Y') === 'Y')
                                             <span class="inline-flex rounded-full bg-success-50 px-2 py-0.5 text-theme-xs font-medium text-success-600">เปิดใช้งาน</span>
@@ -108,11 +147,6 @@
                         </tbody>
                     </table>
                 </div>
-                @if ($data->hasPages())
-                    <div class="border-t border-gray-200 px-5 py-4 sm:px-6">
-                        {{ $data->links('vendor.pagination.tailadmin') }}
-                    </div>
-                @endif
             @endif
         </div>
     </div>

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EditorImageController;
+use App\Http\Controllers\ImageCacheController;
 use App\Http\Controllers\ImageProxyController;
 use App\Http\Controllers\ActiveAgentController;
 use App\Http\Controllers\AgentController;
@@ -12,11 +13,17 @@ use App\Http\Controllers\PropertyRequestController;
 use App\Http\Controllers\PropertyTypeController;
 use App\Http\Controllers\PropertyViewRankingController;
 use App\Http\Controllers\ZoneController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\SellerController;
+use App\Http\Controllers\SystemUserController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/img-cache/{image}_{variant}.webp', [ImageCacheController::class, 'show'])
+    ->where('variant', 'thumb|gallery')
+    ->name('image.cache');
 
 Route::get('/img/{image}', [ImageProxyController::class, 'show'])->name('image.proxy');
 
@@ -42,21 +49,27 @@ Route::middleware('auth')->group(function () {
     Route::delete('active-agent', [ActiveAgentController::class, 'destroy'])->name('active-agent.destroy');
     Route::post('editor/upload-image', [EditorImageController::class, 'store'])->name('editor.upload-image');
 
-    Route::patch('user/reorder', [UserController::class, 'reorder'])->name('user.reorder');
+    Route::patch('seller/reorder', [SellerController::class, 'reorder'])->name('seller.reorder');
+    Route::patch('article/reorder', [ArticleController::class, 'reorder'])->name('article.reorder');
+
+    Route::post('tag/bulk', [TagController::class, 'bulkStore'])->name('tag.bulk-store');
+    Route::post('tag/import-from-zones', [TagController::class, 'importFromZones'])->name('tag.import-from-zones');
 
     Route::resources([
         'propertyRequest' => PropertyRequestController::class,
         'property' => PropertyController::class,
         'propertyType' => PropertyTypeController::class,
         'zone' => ZoneController::class,
-        'user' => UserController::class,
+        'seller' => SellerController::class,
+        'system-user' => SystemUserController::class,
         'agent' => AgentController::class,
         'category' => CategoryController::class,
         'article' => ArticleController::class,
+        'tag' => TagController::class,
     ], ['except' => ['show']]);
 
     Route::get('property-views', [PropertyViewRankingController::class, 'index'])->name('property.views.index');
-    Route::put('user/{user}/password', [UserController::class, 'updatePassword'])->name('user.password.update');
+    Route::put('system-user/{system_user}/password', [SystemUserController::class, 'updatePassword'])->name('system-user.password.update');
     Route::get('property/check-code', [PropertyController::class, 'checkCode'])->name('property.check-code');
     Route::patch('property/{property}/isactive', [PropertyController::class, 'updateIsactive'])->name('property.isactive.update');
     Route::patch('property/{property}/isrecommend', [PropertyController::class, 'updateIsrecommend'])->name('property.isrecommend.update');

@@ -49,6 +49,11 @@ class Agent extends Model
         return $this->hasMany(Asset::class);
     }
 
+    public function articles()
+    {
+        return $this->hasMany(Article::class);
+    }
+
     public function isInUse(): bool
     {
         return $this->assets()->exists();

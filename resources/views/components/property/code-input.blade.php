@@ -25,6 +25,7 @@
         updateValidity() {
             const input = this.$refs.codeInput;
             if (! input) {
+                this.notifyStatus();
                 return;
             }
             if (this.status === 'duplicate') {
@@ -32,6 +33,10 @@
             } else {
                 input.setCustomValidity('');
             }
+            this.notifyStatus();
+        },
+        notifyStatus() {
+            this.$dispatch('property-code-status', { status: this.status });
         },
         async check() {
             const trimmed = (this.code ?? '').trim();
@@ -97,6 +102,8 @@
         init() {
             if ((this.code ?? '').trim() !== '') {
                 this.scheduleCheck();
+            } else {
+                this.notifyStatus();
             }
         },
     }"

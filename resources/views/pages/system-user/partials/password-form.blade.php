@@ -20,4 +20,4 @@
     </div>
 </div>
 
-<x-form.actions :cancel-url="route('user.index')" submit-label="ตั้งรหัสผ่านใหม่" />
+<x-form.actions :cancel-url="route('system-user.index')" submit-label="ตั้งรหัสผ่านใหม่" />

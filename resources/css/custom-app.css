@@ -101,6 +101,21 @@
     margin-bottom: 0.375rem;
 }
 
+.tiptap .youtube-embed-wrapper,
+.prose .youtube-embed-wrapper {
+    margin: 1rem 0;
+    width: 100%;
+}
+
+.tiptap .youtube-embed,
+.prose .youtube-embed-wrapper iframe {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    height: auto;
+    border: 0;
+    border-radius: 0.75rem;
+}
+
 #property-map {
     height: 28rem;
     min-height: 20rem;

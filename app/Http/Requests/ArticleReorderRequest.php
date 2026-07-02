@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UserReorderRequest extends FormRequest
+class ArticleReorderRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -19,7 +19,7 @@ class UserReorderRequest extends FormRequest
     {
         return [
             'order' => ['required', 'array', 'min:1'],
-            'order.*' => ['required', 'string', Rule::exists('users', 'id')],
+            'order.*' => ['required', 'string', Rule::exists('articles', 'id')],
         ];
     }
 }

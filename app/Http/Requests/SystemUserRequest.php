@@ -2,11 +2,10 @@
 
 namespace App\Http\Requests;
 
-use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UserRequest extends FormRequest
+class SystemUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -18,15 +17,9 @@ class UserRequest extends FormRequest
      */
     public function rules(): array
     {
-        $userId = $this->route('user');
+        $systemUserId = $this->route('system_user');
 
         return [
-            'usercode' => [
-                'nullable',
-                'string',
-                'max:50',
-                Rule::unique('users', 'usercode')->ignore($userId),
-            ],
             'firstname' => ['required', 'string', 'max:100'],
             'lastname' => ['required', 'string', 'max:100'],
             'email' => [
@@ -34,14 +27,9 @@ class UserRequest extends FormRequest
                 'string',
                 'email',
                 'max:255',
-                Rule::unique('users', 'email')->ignore($userId),
+                Rule::unique('users', 'email')->ignore($systemUserId),
             ],
-            'phone' => ['nullable', 'string', 'max:50'],
-            'lineid' => ['nullable', 'string', 'max:100'],
-            'fax' => ['nullable', 'string', 'max:50'],
-            'position' => ['nullable', 'string', 'max:255'],
             'isactive' => ['nullable', Rule::in(['Y', 'N'])],
-            'isseller' => ['nullable', Rule::in(['Y', 'N'])],
             'password' => [
                 Rule::requiredIf(fn () => $this->isMethod('POST') && $this->input('isactive') === 'Y'),
                 Rule::prohibitedIf(fn () => $this->isMethod('PUT')),
@@ -50,7 +38,6 @@ class UserRequest extends FormRequest
                 'min:8',
                 'confirmed',
             ],
-            'pic' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:5120'],
         ];
     }
 
@@ -60,18 +47,11 @@ class UserRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'usercode' => 'รหัสพนักงาน',
             'firstname' => 'ชื่อ',
             'lastname' => 'นามสกุล',
             'email' => 'อีเมล',
-            'phone' => 'เบอร์โทรศัพท์',
-            'lineid' => 'Line ID',
-            'fax' => 'แฟกซ์',
-            'position' => 'ตำแหน่ง',
             'isactive' => 'สถานะใช้งาน',
-            'isseller' => 'ตัวแทนขาย',
             'password' => 'รหัสผ่าน',
-            'pic' => 'รูปโปรไฟล์',
         ];
     }
 
@@ -79,7 +59,6 @@ class UserRequest extends FormRequest
     {
         $this->merge([
             'isactive' => $this->boolean('isactive') ? 'Y' : 'N',
-            'isseller' => $this->boolean('isseller') ? 'Y' : 'N',
         ]);
     }
 
@@ -88,17 +67,14 @@ class UserRequest extends FormRequest
      */
     public function profileData(): array
     {
-        return $this->safe()->only([
-            'usercode',
-            'firstname',
-            'lastname',
-            'email',
-            'phone',
-            'lineid',
-            'fax',
-            'position',
-            'isactive',
-            'isseller',
-        ]);
+        return [
+            ...$this->safe()->only([
+                'firstname',
+                'lastname',
+                'email',
+                'isactive',
+            ]),
+            'isseller' => 'N',
+        ];
     }
 }

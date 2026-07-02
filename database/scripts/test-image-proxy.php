@@ -20,6 +20,8 @@ echo 'local: '.(is_file(public_path($image->img_path)) ? 'yes' : 'no').PHP_EOL;
 echo 'thumb: '.$image->thumbnailUrl().PHP_EOL;
 
 $service = app(App\Services\ImageProxyService::class);
-$output = $service->render($image, 400, 300, 80);
+$warmed = $service->warm($image, App\Services\ImageProxyService::VARIANT_THUMB);
 
-echo 'render: '.($output ? strlen($output).' bytes' : 'failed').PHP_EOL;
+echo 'warm thumb: '.($warmed ? 'ok' : 'failed').PHP_EOL;
+echo 'cache file: '.$service->publicCachePath($image, App\Services\ImageProxyService::VARIANT_THUMB).PHP_EOL;
+echo 'exists: '.(is_file($service->publicCachePath($image, App\Services\ImageProxyService::VARIANT_THUMB)) ? 'yes' : 'no').PHP_EOL;

@@ -231,7 +231,7 @@
                     </span>
                     <h3 class="text-base font-semibold text-gray-800">ตัวแทนขายที่มีทรัพย์มากสุด 5 อันดับ</h3>
                 </div>
-                <a href="{{ route('user.index') }}" class="inline-flex items-center gap-1 text-theme-xs font-medium text-brand-600 hover:text-brand-700">
+                <a href="{{ route('seller.index') }}" class="inline-flex items-center gap-1 text-theme-xs font-medium text-brand-600 hover:text-brand-700">
                     ดูทั้งหมด
                     <i class="lni lni-arrow-right text-sm" aria-hidden="true"></i>
                 </a>

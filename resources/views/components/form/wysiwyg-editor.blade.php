@@ -7,6 +7,7 @@
     'height' => 360,
     'required' => false,
     'placeholder' => 'พิมพ์รายละเอียด...',
+    'enableYoutube' => false,
 ])
 
 @php
@@ -41,6 +42,7 @@
         data-upload-url="{{ $uploadUrl }}"
         data-min-height="{{ $height }}"
         data-placeholder="{{ $placeholder }}"
+        @if ($enableYoutube) data-enable-youtube="true" @endif
         class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-theme-xs"
         x-data="{ emojiOpen: false }"
         @click.outside="emojiOpen = false"
@@ -103,6 +105,11 @@
             <button type="button" data-hs-editor-image class="{{ $toolbarBtn }}" title="แทรกรูป">
                 <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path stroke-linecap="round" d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
             </button>
+            @if ($enableYoutube)
+            <button type="button" data-hs-editor-youtube class="{{ $toolbarBtn }}" title="แทรก YouTube">
+                <svg class="size-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.8 8.001a2.75 2.75 0 0 0-1.937-1.948C18.283 6 12 6 12 6s-6.283 0-7.863.053A2.75 2.75 0 0 0 2.2 8.001 28.9 28.9 0 0 0 2 12a28.9 28.9 0 0 0 .2 3.999 2.75 2.75 0 0 0 1.937 1.948C5.717 18 12 18 12 18s6.283 0 7.863-.053a2.75 2.75 0 0 0 1.937-1.948A28.9 28.9 0 0 0 22 12a28.9 28.9 0 0 0-.2-3.999ZM10 15.5v-7l6 3.5-6 3.5Z"/></svg>
+            </button>
+            @endif
             <button type="button" data-hs-editor-emoji @click="emojiOpen = !emojiOpen" class="{{ $toolbarBtn }}" title="Emoji">
                 <span class="text-base leading-none">😊</span>
             </button>

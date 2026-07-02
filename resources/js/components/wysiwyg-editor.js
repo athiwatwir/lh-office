@@ -5,6 +5,7 @@ import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import TextAlign from '@tiptap/extension-text-align';
+import { Youtube, toYoutubeEmbedSrc } from './tiptap-youtube';
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
@@ -103,6 +104,36 @@ function initPrelineEditor(root) {
     const minHeight = Number.parseInt(root.dataset.minHeight ?? '360', 10);
     const placeholder = root.dataset.placeholder ?? 'พิมพ์รายละเอียด...';
     const initialContent = fieldTextarea.value;
+    const enableYoutube = root.dataset.enableYoutube === 'true';
+
+    const extensions = [
+        StarterKit.configure({
+            heading: { levels: [2, 3] },
+        }),
+        Placeholder.configure({
+            placeholder,
+            emptyEditorClass: 'is-editor-empty',
+        }),
+        Underline,
+        Link.configure({
+            openOnClick: false,
+            HTMLAttributes: {
+                class: 'text-brand-600 underline decoration-2 hover:text-brand-700 font-medium',
+            },
+        }),
+        Image.configure({
+            HTMLAttributes: {
+                class: 'max-w-full h-auto rounded-lg',
+            },
+        }),
+        TextAlign.configure({
+            types: ['heading', 'paragraph'],
+        }),
+    ];
+
+    if (enableYoutube) {
+        extensions.push(Youtube);
+    }
 
     const editor = new Editor({
         element: editorField,
@@ -113,30 +144,7 @@ function initPrelineEditor(root) {
                 style: `min-height: ${minHeight}px`,
             },
         },
-        extensions: [
-            StarterKit.configure({
-                heading: { levels: [2, 3] },
-            }),
-            Placeholder.configure({
-                placeholder,
-                emptyEditorClass: 'is-editor-empty',
-            }),
-            Underline,
-            Link.configure({
-                openOnClick: false,
-                HTMLAttributes: {
-                    class: 'text-brand-600 underline decoration-2 hover:text-brand-700 font-medium',
-                },
-            }),
-            Image.configure({
-                HTMLAttributes: {
-                    class: 'max-w-full h-auto rounded-lg',
-                },
-            }),
-            TextAlign.configure({
-                types: ['heading', 'paragraph'],
-            }),
-        ],
+        extensions,
         onUpdate: ({ editor: ed }) => {
             syncTextarea(ed, fieldTextarea);
             updateToolbarState(ed, root);
@@ -202,6 +210,26 @@ function initPrelineEditor(root) {
 
         imageInput.value = '';
     });
+
+    if (enableYoutube) {
+        bindAction(root, '[data-hs-editor-youtube]', () => {
+            const input = window.prompt('วางลิงก์ YouTube', 'https://www.youtube.com/watch?v=');
+
+            if (!input) {
+                return;
+            }
+
+            const src = toYoutubeEmbedSrc(input);
+
+            if (!src) {
+                window.alert('ลิงก์ YouTube ไม่ถูกต้อง');
+
+                return;
+            }
+
+            editor.chain().focus().setYoutubeVideo({ src }).run();
+        });
+    }
 
     root.querySelectorAll('[data-hs-editor-emoji-item]').forEach((button) => {
         button.addEventListener('click', (event) => {

@@ -47,7 +47,7 @@ $mapsApiKey = config('services.google_maps.key', '');
             @error('address.province')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
         </div>
 
-        <div>
+        <div style="display: none;">
             <label for="address_zipcode" class="mb-1.5 block text-theme-sm font-medium text-gray-700">รหัสไปรษณีย์</label>
             <input id="address_zipcode" type="text" name="address[zipcode]" value="{{ $addr('zipcode') }}" autocomplete="off" maxlength="10" class="{{ $inputClass }} @error('address.zipcode') border-error-500 @enderror" />
             @error('address.zipcode')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror

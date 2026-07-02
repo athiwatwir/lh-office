@@ -12,16 +12,20 @@ class MenuHelper
                 'icon' => 'dashboard',
                 'name' => 'Dashboard',
                 'path' => '/dashboard',
+                'routes' => ['dashboard'],
             ],
             [
                 'icon' => 'apartment',
                 'name' => 'รายการทรัพย์สิน',
                 'path' => route('property.index', absolute: false),
+                'routes' => ['property.*'],
             ],
             [
                 'icon' => 'home',
                 'name' => 'ฝากขายบ้าน-ที่ดิน',
                 'path' => route('propertyRequest.index', ['type' => 'sell'], absolute: false),
+                'routes' => ['propertyRequest.*'],
+                'query' => ['type' => 'sell'],
             ],
 
 
@@ -64,24 +68,32 @@ class MenuHelper
                 'icon' => 'apartment',
                 'name' => 'ทรัพย์สิน',
                 'subItems' => [
-                    ['name' => 'ประเภทของทรัพย์สิน', 'path' => route('propertyType.index', absolute: false), 'pro' => false],
-                    ['name' => 'โซน', 'path' => route('zone.index', absolute: false), 'pro' => false],
+                    ['name' => 'ประเภทของทรัพย์สิน', 'path' => route('propertyType.index', absolute: false), 'routes' => ['propertyType.*'], 'pro' => false],
+                    ['name' => 'โซน', 'path' => route('zone.index', absolute: false), 'routes' => ['zone.*'], 'pro' => false],
+                    ['name' => 'ทำเล/กลุ่ม/tags', 'path' => route('tag.index', absolute: false), 'routes' => ['tag.*'], 'pro' => false],
                     //['name' => 'สิ่งอำนวยความสะดวก', 'path' => '/line-chart', 'pro' => false],
                     // ['name' => 'สถานที่ใกล้เคียง', 'path' => '/line-chart', 'pro' => false],
                 ],
             ],
             [
                 'icon' => 'users',
-                'name' => 'ตัวแทนขาย/ผู้ใช้งานระบบ',
-                'path' => route('user.index', absolute: false),
+                'name' => 'ตัวแทนขาย',
+                'path' => route('seller.index', absolute: false),
+                'routes' => ['seller.*'],
+            ],
+            [
+                'icon' => 'user',
+                'name' => 'ผู้ใช้งานระบบ',
+                'path' => route('system-user.index', absolute: false),
+                'routes' => ['system-user.*'],
             ],
 
             [
                 'icon' => 'book',
                 'name' => 'บทความ',
                 'subItems' => [
-                    ['name' => 'รายการบทความ', 'path' => route('article.index', absolute: false), 'pro' => false],
-                    ['name' => 'ประเภทของบทความ', 'path' => route('category.index', absolute: false), 'pro' => false]
+                    ['name' => 'รายการบทความ', 'path' => route('article.index', absolute: false), 'routes' => ['article.*'], 'pro' => false],
+                    ['name' => 'ประเภทของบทความ', 'path' => route('category.index', absolute: false), 'routes' => ['category.*'], 'pro' => false]
                 ],
             ],
 
@@ -102,6 +114,66 @@ class MenuHelper
         ];
     }
 
+    public static function isMenuItemActive(array $item): bool
+    {
+        if (! empty($item['subItems'])) {
+            foreach ($item['subItems'] as $subItem) {
+                if (self::isMenuItemActive($subItem)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return self::isItemActive($item);
+    }
+
+    public static function isItemActive(array $item): bool
+    {
+        if (! empty($item['routes'])) {
+            return self::routeMatches($item['routes'], $item['query'] ?? null);
+        }
+
+        return self::isActive($item['path'] ?? '');
+    }
+
+    /**
+     * @param  list<string>  $patterns
+     * @param  array<string, string>|null  $requiredQuery
+     */
+    protected static function routeMatches(array $patterns, ?array $requiredQuery = null): bool
+    {
+        $matched = false;
+
+        foreach ($patterns as $pattern) {
+            if (request()->routeIs($pattern)) {
+                $matched = true;
+                break;
+            }
+        }
+
+        if (! $matched) {
+            return false;
+        }
+
+        if ($requiredQuery === null) {
+            return true;
+        }
+
+        $routeName = request()->route()?->getName();
+
+        if ($routeName && str_ends_with($routeName, '.index')) {
+            foreach ($requiredQuery as $key => $value) {
+                if ((string) request()->query($key) !== (string) $value) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     public static function isActive($path): bool
     {
         if (blank($path)) {
@@ -109,17 +181,27 @@ class MenuHelper
         }
 
         $parsed = parse_url($path);
-        $targetPath = '/' . ltrim($parsed['path'] ?? $path, '/');
+        $targetPath = '/'.ltrim($parsed['path'] ?? $path, '/');
+        $currentPath = request()->getPathInfo();
 
-        if (request()->getPathInfo() !== $targetPath) {
-            return false;
+        if ($currentPath === $targetPath) {
+            return self::matchesQueryString($parsed['query'] ?? null);
         }
 
-        if (empty($parsed['query'])) {
+        if ($targetPath !== '/' && str_starts_with($currentPath, rtrim($targetPath, '/').'/')) {
+            return self::matchesQueryString($parsed['query'] ?? null);
+        }
+
+        return false;
+    }
+
+    protected static function matchesQueryString(?string $query): bool
+    {
+        if (empty($query)) {
             return true;
         }
 
-        parse_str($parsed['query'], $targetQuery);
+        parse_str($query, $targetQuery);
 
         foreach ($targetQuery as $key => $value) {
             if ((string) request()->query($key) !== (string) $value) {

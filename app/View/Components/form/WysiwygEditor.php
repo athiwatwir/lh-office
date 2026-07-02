@@ -19,6 +19,7 @@ class WysiwygEditor extends Component
         public int $height = 360,
         public bool $required = false,
         public string $placeholder = 'พิมพ์รายละเอียด...',
+        public bool $enableYoutube = false,
     ) {
         if ($this->id === '') {
             $this->id = $this->name;

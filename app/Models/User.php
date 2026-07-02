@@ -103,6 +103,30 @@ class User extends Authenticatable implements MustVerifyEmail
         'seq'
     ];
 
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user): void {
+            if (blank($user->email) || str_contains($user->email, '_delete')) {
+                return;
+            }
+
+            $user->email = self::emailForDeletion($user->email, $user->id);
+            $user->saveQuietly();
+        });
+    }
+
+    public static function emailForDeletion(string $email, string $id): string
+    {
+        $suffix = '_delete_'.$id;
+        $maxLength = 255;
+
+        if (strlen($email) + strlen($suffix) > $maxLength) {
+            $email = substr($email, 0, $maxLength - strlen($suffix));
+        }
+
+        return $email.$suffix;
+    }
+
     public function getNameAttribute(): string
     {
         return trim("{$this->firstname} {$this->lastname}");
@@ -177,6 +201,20 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isSeller(): bool
     {
         return $this->isseller === 'Y';
+    }
+
+    public function scopeSellers($query)
+    {
+        return $query->where('isseller', 'Y');
+    }
+
+    public function scopeSystemUsers($query)
+    {
+        return $query->where(function ($builder) {
+            $builder
+                ->whereNull('isseller')
+                ->orWhere('isseller', '!=', 'Y');
+        });
     }
 
     public function addresses()

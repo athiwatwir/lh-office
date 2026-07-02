@@ -5,6 +5,7 @@
     "scripts": {
         "prebuild": "node -e \"try{require('fs').unlinkSync('public/hot')}catch(e){}\"",
         "build": "vite build",
+        "predev": "node -e \"try{require('fs').unlinkSync('public/hot')}catch(e){}\"",
         "dev": "vite",
         "dev:clean": "node -e \"try{require('fs').unlinkSync('public/hot')}catch(e){}\""
     },

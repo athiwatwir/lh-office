@@ -198,6 +198,11 @@ class Asset extends Model
             ->withTimestamps();
     }
 
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'asset_tags');
+    }
+
     public function asset_images()
     {
         return $this->hasMany(AssetImage::class)->orderBy('seq');

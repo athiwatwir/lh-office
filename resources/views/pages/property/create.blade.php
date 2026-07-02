@@ -4,11 +4,11 @@
     <x-common.page-breadcrumb :pageTitle="$title" />
 
     <div class="space-y-6">
-        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+        <div class="rounded-2xl border border-gray-200 bg-white">
             <x-form.page-header :title="$title" :back-url="route('property.index')" />
 
-            <form method="POST" action="{{ route('property.store') }}" class="px-5 py-6 sm:px-6">
-                @include('pages.property.partials.form', ['item' => $item, 'method' => 'POST'])
+            <form method="POST" action="{{ route('property.store') }}" class="px-5 py-6 sm:px-6" x-data="propertyFormGuard()" @submit="handleSubmit($event)">
+                @include('pages.property.partials.form', ['item' => $item, 'method' => 'POST', 'guard' => true])
             </form>
         </div>
     </div>

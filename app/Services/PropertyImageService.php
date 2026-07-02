@@ -14,6 +14,7 @@ class PropertyImageService
     public function __construct(
         private readonly ImageUploadService $imageUpload,
         private readonly ActiveAgentService $activeAgent,
+        private readonly ImageProxyService $imageProxy,
     ) {}
 
     public function upload(Asset $asset, UploadedFile $file): AssetImage
@@ -59,6 +60,8 @@ class PropertyImageService
             'created' => now(),
         ]);
 
+        $this->imageProxy->warmAllVariants($image, 'property_upload');
+
         return $assetImage->load('image');
     }
 
@@ -91,6 +94,7 @@ class PropertyImageService
         $assetImage->delete();
 
         if ($image !== null) {
+            $this->imageProxy->invalidate($image);
             $image->delete();
         }
 

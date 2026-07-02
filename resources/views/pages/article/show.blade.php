@@ -10,6 +10,11 @@
                     <h3 class="text-lg font-semibold text-gray-800">{{ $item->name }}</h3>
                     <div class="mt-1 flex flex-wrap items-center gap-2 text-theme-xs text-gray-500">
                         <span class="inline-flex rounded-full bg-gray-100 px-2 py-0.5">{{ $item->category?->name ?? '-' }}</span>
+                        @if ($item->isVisibleToAllAgents())
+                            <span class="inline-flex rounded-full bg-brand-50 px-2 py-0.5 text-brand-600">ทุก Agent</span>
+                        @else
+                            <span class="inline-flex rounded-full bg-gray-100 px-2 py-0.5">{{ $item->agent?->name ?? '-' }}</span>
+                        @endif
                         @if (($item->isactive ?? 'Y') === 'Y')
                             <span class="inline-flex rounded-full bg-success-50 px-2 py-0.5 text-success-600">เปิดใช้งาน</span>
                         @else
@@ -30,6 +35,12 @@
             </div>
 
             <div class="px-5 py-6 sm:px-6">
+                @if ($item->cover_image_url)
+                    <div class="mb-6 overflow-hidden rounded-2xl border border-gray-200">
+                        <img src="{{ $item->cover_image_url }}" alt="{{ $item->name }}" class="max-h-96 w-full object-cover">
+                    </div>
+                @endif
+
                 <article class="prose prose-sm max-w-none">
                     {!! $item->text ?: '<p class="text-gray-500">ยังไม่มีเนื้อหาบทความ</p>' !!}
                 </article>

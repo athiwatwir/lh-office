@@ -10,6 +10,7 @@
             @include('pages.article.partials.form', [
                 'item' => $item,
                 'categories' => $categories,
+                'agents' => $agents,
                 'method' => 'POST',
                 'action' => route('article.store'),
             ])

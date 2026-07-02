@@ -69,6 +69,13 @@ $ynFields = [
                 @error('user_id')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
             </div>
 
+            <div class="md:col-span-2">
+                <x-property.tag-input
+                    :value="$item->exists ? \App\Services\PropertyTagService::namesToText($item) : ''"
+                    :tags="$tags"
+                />
+            </div>
+
         </div>
     </section>
 
@@ -99,4 +106,13 @@ $ynFields = [
 
 </div>
 
-<x-form.actions :cancel-url="route('property.index')" />
+@php
+    $guard = $guard ?? false;
+@endphp
+
+@if ($guard)
+    <div class="h-40" aria-hidden="true"></div>
+    @include('pages.property.partials.form-readiness')
+@else
+    <x-form.actions :cancel-url="route('property.index')" />
+@endif

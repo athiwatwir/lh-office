@@ -9,6 +9,7 @@ use App\Http\Resources\Api\PropertyDetailResource;
 use App\Http\Resources\Api\PropertyListResource;
 use App\Models\Asset;
 use App\Services\AssetViewService;
+use App\Services\PropertyApiImageWarmer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -16,6 +17,7 @@ class PropertyController extends Controller
 {
     public function __construct(
         private readonly AssetViewService $assetViews,
+        private readonly PropertyApiImageWarmer $imageWarmer,
     ) {}
 
     public function index(PropertyIndexRequest $request): AnonymousResourceCollection
@@ -26,6 +28,8 @@ class PropertyController extends Controller
                 'asset_type:id,name',
                 'agent:id,name,code',
                 'zone:id,name',
+                'user:id,firstname,lastname,phone',
+                'address:id,amphur',
                 'asset_images' => fn($query) => $query
                     ->orderByRaw("CASE WHEN isdefault = 'Y' THEN 0 ELSE 1 END")
                     ->orderBy('seq')
@@ -62,6 +66,8 @@ class PropertyController extends Controller
             ->latestFirst()
             ->paginate($request->perPage());
 
+        $this->imageWarmer->warmListThumbnails($properties);
+
         return PropertyListResource::collection($properties);
     }
 
@@ -79,6 +85,8 @@ class PropertyController extends Controller
                 'asset_images' => fn($query) => $query->orderBy('seq')->with('image'),
             ])
             ->findOrFail($property);
+
+        $this->imageWarmer->warmDetailImages($item);
 
         return new PropertyDetailResource($item);
     }
@@ -102,6 +110,8 @@ class PropertyController extends Controller
                 'asset_type:id,name',
                 'agent:id,name,code',
                 'zone:id,name',
+                'user:id,firstname,lastname,phone',
+                'address:id,amphur',
                 'asset_images' => fn ($query) => $query
                     ->orderByRaw("CASE WHEN isdefault = 'Y' THEN 0 ELSE 1 END")
                     ->orderBy('seq')
@@ -148,6 +158,8 @@ class PropertyController extends Controller
             )
             ->latestFirst()
             ->paginate($request->perPage());
+
+        $this->imageWarmer->warmListThumbnails($properties);
 
         return PropertyListResource::collection($properties);
     }

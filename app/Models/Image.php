@@ -6,6 +6,7 @@
 
 namespace App\Models;
 
+use App\Services\ImageProxyService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -61,27 +62,28 @@ class Image extends Model
 
     public function getUrlAttribute(): ?string
     {
-        $storagePath = $this->img_path ?: ($this->attributes['path'] ?? null);
-
-        if (blank($storagePath)) {
+        if (blank($this->img_path)) {
             return null;
         }
 
-        $normalized = ltrim($storagePath, '/');
-
-        if (str_starts_with($normalized, 'upload/')) {
-            if (is_file(public_path($normalized))) {
-                return '/'.$normalized;
-            }
-
-            return self::resolveLegacyUrl($storagePath);
+        if (str_starts_with($this->img_path, 'http://') || str_starts_with($this->img_path, 'https://')) {
+            return $this->img_path;
         }
 
-        if (str_starts_with($storagePath, 'http://') || str_starts_with($storagePath, 'https://')) {
-            return $storagePath;
+        $localPath = app(ImageProxyService::class)->resolveSourceFilePath($this->img_path);
+
+        if ($localPath === null) {
+            return null;
         }
 
-        return self::resolveLegacyUrl($storagePath);
+        $publicRoot = realpath(public_path()) ?: public_path();
+        $realLocalPath = realpath($localPath);
+
+        if ($realLocalPath !== false && str_starts_with($realLocalPath, $publicRoot)) {
+            return '/'.ltrim(str_replace('\\', '/', substr($realLocalPath, strlen($publicRoot))), '/');
+        }
+
+        return null;
     }
 
     public function proxyUrl(?int $width = null, ?int $height = null, ?int $quality = null, bool $absolute = false): ?string
@@ -107,16 +109,12 @@ class Image extends Model
 
     public function thumbnailUrl(bool $absolute = false): ?string
     {
-        $size = config('image.sizes.thumb', ['w' => 400, 'h' => 300]);
-
-        return $this->proxyUrl($size['w'] ?? null, $size['h'] ?? null, absolute: $absolute);
+        return app(ImageProxyService::class)->publicCacheUrl($this, ImageProxyService::VARIANT_THUMB, $absolute);
     }
 
     public function galleryUrl(bool $absolute = false): ?string
     {
-        $size = config('image.sizes.gallery', ['w' => 1200, 'h' => null]);
-
-        return $this->proxyUrl($size['w'] ?? null, $size['h'] ?? null, absolute: $absolute);
+        return app(ImageProxyService::class)->publicCacheUrl($this, ImageProxyService::VARIANT_GALLERY, $absolute);
     }
 
     public static function resolveLegacyUrl(?string $path): ?string

@@ -12,10 +12,12 @@ use App\Models\Agent;
 use App\Models\Asset;
 use App\Models\AssetType;
 use App\Models\User;
+use App\Models\Tag;
 use App\Models\Zone;
 use App\Services\ActiveAgentService;
 use App\Services\PropertyAddressService;
 use App\Services\PropertyDeletionService;
+use App\Services\PropertyTagService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -26,6 +28,7 @@ class PropertyController extends Controller
     public function __construct(
         private readonly ActiveAgentService $activeAgent,
         private readonly PropertyAddressService $addressService,
+        private readonly PropertyTagService $tagService,
     ) {}
 
     public function index(PropertyIndexRequest $request): View
@@ -114,6 +117,8 @@ class PropertyController extends Controller
             'isactive' => 'Y',
         ]);
 
+        $this->tagService->sync($item, $request->input('tag_names'));
+
         return redirect()
             ->route('property.edit', $item)
             ->with('success', 'เพิ่มทรัพย์สินเรียบร้อยแล้ว สามารถอัปโหลดรูปภาพได้ด้านล่าง');
@@ -122,7 +127,7 @@ class PropertyController extends Controller
     public function edit(string $property): View
     {
         $item = Asset::query()
-            ->with(['asset_type', 'zone', 'user', 'address', 'agent', 'asset_images.image'])
+            ->with(['asset_type', 'zone', 'user', 'address', 'agent', 'tags', 'asset_images.image'])
             ->findOrFail($property);
 
         return view('pages.property.edit', [
@@ -142,6 +147,8 @@ class PropertyController extends Controller
             ...$request->assetData(),
             'address_id' => $addressId,
         ]);
+
+        $this->tagService->sync($item, $request->input('tag_names'));
 
         return redirect()
             ->route('property.edit', $item)
@@ -271,6 +278,7 @@ class PropertyController extends Controller
             'zones' => Zone::query()->orderBy('name')->get(['id', 'name']),
             'agents' => $agentsQuery->get(['id', 'firstname', 'lastname', 'usercode']),
             'activeAgent' => $this->activeAgent->agent(),
+            'tags' => Tag::query()->orderBy('name')->pluck('name'),
         ];
     }
 }

@@ -52,10 +52,12 @@ $agentsPayload = $agents->map(fn ($agent) => [
         selectAgent(id) {
             this.selectedId = id;
             this.open = false;
+            this.$nextTick(() => this.$refs.userIdInput?.dispatchEvent(new Event('input', { bubbles: true })));
         },
         clearAgent() {
             this.selectedId = '';
             this.open = false;
+            this.$nextTick(() => this.$refs.userIdInput?.dispatchEvent(new Event('input', { bubbles: true })));
         },
     }" {{ $attributes->merge(['class' => '']) }}>
     <label class="mb-1.5 block text-theme-sm font-medium text-gray-700">
@@ -65,7 +67,7 @@ $agentsPayload = $agents->map(fn ($agent) => [
         @endif
     </label>
 
-    <input type="hidden" name="user_id" x-model="selectedId" @if ($required) required @endif>
+    <input type="hidden" name="user_id" x-ref="userIdInput" x-model="selectedId" @if ($required) required @endif>
 
     <button type="button" @click="open = true" class="flex h-11 w-full items-center justify-between gap-3 rounded-lg border border-gray-300 bg-white px-3 text-left text-sm text-gray-800 shadow-theme-xs transition hover:border-brand-300 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 @error('user_id') border-error-500 @enderror">
         <span class="flex min-w-0 items-center gap-3">

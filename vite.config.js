@@ -30,8 +30,12 @@ export default defineConfig({
             host: '127.0.0.1',
         },
         watch: {
-            // ป้องกัน reload loop จาก Blade ที่ compile แล้ว
-            ignored: ['**/storage/framework/views/**'],
+            ignored: [
+                '**/storage/**',
+                '**/vendor/**',
+                '**/public/build/**',
+                '**/node_modules/**',
+            ],
         },
     },
 });

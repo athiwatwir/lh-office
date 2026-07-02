@@ -2,6 +2,7 @@
     'cancelUrl',
     'submitLabel' => 'บันทึก',
     'cancelLabel' => 'ยกเลิก',
+    'guard' => false,
 ])
 
 <div class="-mx-5 mt-8 flex flex-col-reverse gap-3 border-t border-gray-200 bg-gray-50 px-5 py-5 sm:-mx-6 sm:flex-row sm:items-center sm:justify-end sm:px-6">
@@ -15,7 +16,14 @@
 
     <button
         type="submit"
+        @if ($guard)
+        :disabled="!canSubmit"
+        :class="canSubmit
+            ? 'inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-brand-500 px-6 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500/30'
+            : 'inline-flex h-11 cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-gray-300 px-6 text-sm font-semibold text-gray-500 shadow-theme-sm'"
+        @else
         class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-brand-500 px-6 text-sm font-semibold text-white shadow-theme-sm transition hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+        @endif
     >
         <i class="lni lni-check-circle-1 text-base" aria-hidden="true"></i>
         {{ $submitLabel }}
