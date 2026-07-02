@@ -29,9 +29,8 @@ class SystemUserRequest extends FormRequest
                 'max:255',
                 Rule::unique('users', 'email')->ignore($systemUserId),
             ],
-            'isactive' => ['nullable', Rule::in(['Y', 'N'])],
             'password' => [
-                Rule::requiredIf(fn () => $this->isMethod('POST') && $this->input('isactive') === 'Y'),
+                Rule::requiredIf(fn () => $this->isMethod('POST')),
                 Rule::prohibitedIf(fn () => $this->isMethod('PUT')),
                 'nullable',
                 'string',
@@ -50,16 +49,8 @@ class SystemUserRequest extends FormRequest
             'firstname' => 'ชื่อ',
             'lastname' => 'นามสกุล',
             'email' => 'อีเมล',
-            'isactive' => 'สถานะใช้งาน',
             'password' => 'รหัสผ่าน',
         ];
-    }
-
-    protected function prepareForValidation(): void
-    {
-        $this->merge([
-            'isactive' => $this->boolean('isactive') ? 'Y' : 'N',
-        ]);
     }
 
     /**
@@ -72,8 +63,8 @@ class SystemUserRequest extends FormRequest
                 'firstname',
                 'lastname',
                 'email',
-                'isactive',
             ]),
+            'isactive' => 'Y',
             'isseller' => 'N',
         ];
     }

@@ -32,7 +32,7 @@ class SystemUserController extends Controller
             'title' => 'เพิ่มผู้ใช้งานระบบ',
             'item' => new User([
                 'isseller' => 'N',
-                'isactive' => 'N',
+                'isactive' => 'Y',
             ]),
         ]);
     }
@@ -44,11 +44,8 @@ class SystemUserController extends Controller
             'isverify' => 'Y',
             'created' => now(),
             'updated' => now(),
+            'password' => Hash::make($request->validated('password')),
         ];
-
-        if ($request->input('isactive') === 'Y') {
-            $payload['password'] = Hash::make($request->validated('password'));
-        }
 
         User::query()->create($payload);
 

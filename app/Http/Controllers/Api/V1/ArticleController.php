@@ -7,8 +7,10 @@ use App\Http\Middleware\AuthenticateAgentApiKey;
 use App\Http\Requests\Api\ArticleIndexRequest;
 use App\Http\Resources\Api\ArticleDetailResource;
 use App\Http\Resources\Api\ArticleListResource;
+use App\Http\Resources\Api\CategoryResource;
 use App\Models\Agent;
 use App\Models\Article;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -37,7 +39,20 @@ class ArticleController extends Controller
             ->orderedForDisplay()
             ->paginate($request->perPage());
 
-        return ArticleListResource::collection($articles);
+        $categories = Category::query()
+            ->where('isactive', 'Y')
+            ->when(
+                $request->categoryId(),
+                fn ($query) => $query->where('id', $request->categoryId()),
+            )
+            ->orderByRaw('seq IS NULL')
+            ->orderBy('seq')
+            ->orderBy('name')
+            ->get(['id', 'name', 'seq']);
+
+        return ArticleListResource::collection($articles)->additional([
+            'categories' => CategoryResource::collection($categories),
+        ]);
     }
 
     public function show(Request $request, string $article): ArticleDetailResource
