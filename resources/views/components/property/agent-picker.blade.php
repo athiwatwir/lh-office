@@ -52,12 +52,18 @@ $agentsPayload = $agents->map(fn ($agent) => [
         selectAgent(id) {
             this.selectedId = id;
             this.open = false;
-            this.$nextTick(() => this.$refs.userIdInput?.dispatchEvent(new Event('input', { bubbles: true })));
+            this.$nextTick(() => {
+                this.$refs.userIdInput?.dispatchEvent(new Event('input', { bubbles: true }));
+                this.$refs.userIdInput?.dispatchEvent(new Event('change', { bubbles: true }));
+            });
         },
         clearAgent() {
             this.selectedId = '';
             this.open = false;
-            this.$nextTick(() => this.$refs.userIdInput?.dispatchEvent(new Event('input', { bubbles: true })));
+            this.$nextTick(() => {
+                this.$refs.userIdInput?.dispatchEvent(new Event('input', { bubbles: true }));
+                this.$refs.userIdInput?.dispatchEvent(new Event('change', { bubbles: true }));
+            });
         },
     }" {{ $attributes->merge(['class' => '']) }}>
     <label class="mb-1.5 block text-theme-sm font-medium text-gray-700">

@@ -72,7 +72,6 @@ class PropertyRequest extends FormRequest
             'issaledown' => ['nullable', Rule::in(['Y', 'N'])],
             'iscovering' => ['nullable', Rule::in(['Y', 'N'])],
             'isdweller' => ['nullable', Rule::in(['Y', 'N'])],
-            'isactive' => ['nullable', Rule::in(['Y', 'N'])],
         ];
     }
 
@@ -115,13 +114,16 @@ class PropertyRequest extends FormRequest
             'address.province' => 'จังหวัด',
             'address.zipcode' => 'รหัสไปรษณีย์',
             'address.description' => 'รายละเอียดที่อยู่',
-            'isactive' => 'สถานะเปิดใช้งาน',
         ];
     }
 
     protected function prepareForValidation(): void
     {
-        foreach (['issale', 'isrent', 'issalerent', 'issellout', 'issaledown', 'iscovering', 'isdweller', 'isactive'] as $field) {
+        foreach (['issale', 'isrent', 'issalerent', 'issellout', 'issaledown', 'iscovering', 'isdweller'] as $field) {
+            if (! $this->has($field)) {
+                continue;
+            }
+
             $this->merge([
                 $field => $this->boolean($field) ? 'Y' : 'N',
             ]);
@@ -161,7 +163,6 @@ class PropertyRequest extends FormRequest
             'issaledown',
             'iscovering',
             'isdweller',
-            'isactive',
             'latitude',
             'longitude',
         ]);

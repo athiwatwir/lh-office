@@ -1,29 +1,57 @@
 document.addEventListener('alpine:init', () => {
-    Alpine.data('propertyFormGuard', () => ({
-        tick: 0,
+    Alpine.store('propertyFormGuard', {
         codeStatus: 'idle',
 
+        setCodeStatus(status) {
+            this.codeStatus = status ?? 'idle';
+        },
+
+        reset() {
+            this.codeStatus = 'idle';
+        },
+    });
+
+    Alpine.data('propertyFormGuard', () => ({
+        tick: 0,
+
         init() {
+            Alpine.store('propertyFormGuard').reset();
+
+            this.formEl = this.$el.matches('form')
+                ? this.$el
+                : (this.$el.querySelector('form') ?? this.$el.closest('form'));
+
             const bump = () => {
                 this.tick++;
             };
 
-            this.$el.addEventListener('input', bump, true);
-            this.$el.addEventListener('change', bump, true);
-            this.$el.addEventListener('property-code-status', (event) => {
-                this.codeStatus = event.detail?.status ?? 'idle';
-                bump();
-            });
+            if (this.formEl) {
+                this.formEl.addEventListener('input', bump, true);
+                this.formEl.addEventListener('change', bump, true);
+            }
+
+            this.$watch(() => Alpine.store('propertyFormGuard').codeStatus, bump);
 
             this.$nextTick(bump);
+        },
+
+        onCodeStatus(event) {
+            Alpine.store('propertyFormGuard').setCodeStatus(event.detail?.status);
+            this.tick++;
         },
 
         fieldValue(name) {
             void this.tick;
 
-            const field = this.$el.querySelector(`[name="${name}"]`);
+            const field = this.formEl?.querySelector(`[name="${name}"]`);
 
             return (field?.value ?? '').trim();
+        },
+
+        get codeStatus() {
+            void this.tick;
+
+            return Alpine.store('propertyFormGuard').codeStatus;
         },
 
         isCodeValid() {
@@ -125,19 +153,40 @@ document.addEventListener('alpine:init', () => {
             return this.completedCount === this.totalCount;
         },
 
-        handleSubmit(event) {
-            if (this.canSubmit) {
-                return;
-            }
-
-            event.preventDefault();
-
+        notifyPending() {
             const pending = this.checks
                 .filter((check) => !check.done)
                 .map((check) => check.label)
                 .join(', ');
 
             Alpine.store('notify').error(`กรุณากรอกข้อมูลให้ครบ: ${pending}`);
+        },
+
+        handleSubmit(event) {
+            if (this.canSubmit) {
+                return;
+            }
+
+            event.preventDefault();
+            this.notifyPending();
+        },
+
+        submitForm() {
+            if (!this.canSubmit) {
+                this.notifyPending();
+
+                return;
+            }
+
+            if (!this.formEl) {
+                return;
+            }
+
+            if (typeof this.formEl.requestSubmit === 'function') {
+                this.formEl.requestSubmit();
+            } else {
+                this.formEl.submit();
+            }
         },
     }));
 });

@@ -118,8 +118,8 @@
                     </a>
 
                     <button
-                        type="submit"
-                        :disabled="!canSubmit"
+                        type="button"
+                        @click="submitForm()"
                         :class="canSubmit
                             ? 'inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-6 text-sm font-bold text-white shadow-lg shadow-brand-500/30 transition hover:from-brand-600 hover:to-brand-700 hover:shadow-brand-500/40 focus:outline-none focus:ring-2 focus:ring-brand-500/40'
                             : 'inline-flex h-11 cursor-not-allowed items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 bg-gray-100 px-6 text-sm font-semibold text-gray-400'"

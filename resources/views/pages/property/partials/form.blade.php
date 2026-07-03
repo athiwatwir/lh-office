@@ -111,6 +111,7 @@ $ynFields = [
 @endphp
 
 @if ($guard)
+    <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true"></button>
     <div class="h-40" aria-hidden="true"></div>
     @include('pages.property.partials.form-readiness')
 @else

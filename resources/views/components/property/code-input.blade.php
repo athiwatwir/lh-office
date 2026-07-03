@@ -36,7 +36,18 @@
             this.notifyStatus();
         },
         notifyStatus() {
-            this.$dispatch('property-code-status', { status: this.status });
+            const detail = { status: this.status };
+
+            if (typeof Alpine !== 'undefined' && Alpine.store('propertyFormGuard')) {
+                Alpine.store('propertyFormGuard').setCodeStatus(this.status);
+            }
+
+            this.$dispatch('property-code-status', detail);
+
+            const form = this.$el.closest('form');
+            if (form) {
+                form.dispatchEvent(new CustomEvent('property-code-status', { bubbles: true, detail }));
+            }
         },
         async check() {
             const trimmed = (this.code ?? '').trim();

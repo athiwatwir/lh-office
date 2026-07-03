@@ -879,3 +879,7 @@ pre[class*='language-'] {
     margin-right: -60px !important;
   }
 }
+
+[x-cloak] {
+  display: none !important;
+}
