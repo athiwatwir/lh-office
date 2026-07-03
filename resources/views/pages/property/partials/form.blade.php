@@ -43,8 +43,106 @@ $ynFields = [
                 @error('name')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
             </div>
 
-            <div class="md:col-span-2">
-                <x-form.wysiwyg-editor name="description" label="รายละเอียด" :value="old('description', $item->description)" :height="400" />
+            <div
+                class="md:col-span-2"
+                x-data="{
+                    previewOpen: false,
+                    previewHtml: '',
+                    openDescriptionPreview() {
+                        const textarea = document.getElementById('description');
+                        this.previewHtml = (textarea?.value ?? '').trim();
+                        this.previewOpen = true;
+                        document.body.style.overflow = 'hidden';
+                    },
+                    closeDescriptionPreview() {
+                        this.previewOpen = false;
+                        document.body.style.overflow = 'unset';
+                    },
+                }"
+            >
+                <div class="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+                    <label for="description" class="block text-theme-sm font-medium text-gray-700">รายละเอียด</label>
+                    <button
+                        type="button"
+                        @click="openDescriptionPreview()"
+                        class="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-brand-300 bg-brand-50 px-3 text-theme-xs font-semibold text-brand-700 shadow-theme-xs transition hover:bg-brand-100"
+                    >
+                        <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1 1 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                        </svg>
+                        ดูตัวอย่าง
+                    </button>
+                </div>
+
+                <x-form.wysiwyg-editor
+                    name="description"
+                    :value="old('description', $item->description)"
+                    :height="400"
+                />
+
+                <div
+                    x-show="previewOpen"
+                    x-cloak
+                    @keydown.escape.window="closeDescriptionPreview()"
+                    class="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-4 sm:p-5"
+                >
+                    <div
+                        @click="closeDescriptionPreview()"
+                        class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px]"
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0"
+                        x-transition:enter-end="opacity-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100"
+                        x-transition:leave-end="opacity-0"
+                    ></div>
+
+                    <div
+                        @click.stop
+                        class="relative flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl bg-white shadow-theme-xl"
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                    >
+                        <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4 sm:px-6">
+                            <h3 class="text-lg font-semibold text-gray-800">ตัวอย่างรายละเอียด</h3>
+                            <button
+                                type="button"
+                                @click="closeDescriptionPreview()"
+                                class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition hover:bg-gray-200 hover:text-gray-700"
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M6.04289 16.5413C5.65237 16.9318 5.65237 17.565 6.04289 17.9555C6.43342 18.346 7.06658 18.346 7.45711 17.9555L11.9987 13.4139L16.5408 17.956C16.9313 18.3466 17.5645 18.3466 17.955 17.956C18.3455 17.5655 18.3455 16.9323 17.955 16.5418L13.4129 11.9997L17.955 7.4576C18.3455 7.06707 18.3455 6.43391 17.955 6.04338C17.5645 5.65286 16.9313 5.65286 16.5408 6.04338L11.9987 10.5855L7.45711 6.0439C7.06658 5.65338 6.43342 5.65338 6.04289 6.0439C5.65237 6.43442 5.65237 7.06759 6.04289 7.45811L10.5845 11.9997L6.04289 16.5413Z" fill="currentColor" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
+                            <div
+                                x-show="previewHtml !== ''"
+                                x-html="previewHtml"
+                                class="prose prose-sm tiptap-editor-content max-w-none text-gray-700"
+                            ></div>
+                            <p x-show="previewHtml === ''" x-cloak class="py-10 text-center text-sm text-gray-500">
+                                ยังไม่มีเนื้อหา — กรอกรายละเอียดก่อนแล้วกดดูตัวอย่างอีกครั้ง
+                            </p>
+                        </div>
+
+                        <div class="border-t border-gray-200 px-5 py-4 sm:px-6">
+                            <button
+                                type="button"
+                                @click="closeDescriptionPreview()"
+                                class="inline-flex h-10 w-full items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600 sm:w-auto"
+                            >
+                                ปิด
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="md:col-span-2">

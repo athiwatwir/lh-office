@@ -150,27 +150,30 @@ class PropertyImageService
             }
         }
 
-        $textHeight = 0;
         $textWidth = 0;
+        $textHeight = 0;
         $fontSize = 0;
-        $textGap = 0;
 
         if ($phoneText !== '') {
-            $textBoxWidth = $targetWidth > 0
-                ? max(24, $targetWidth - max(8, (int) round($targetWidth * 0.1)))
-                : max(48, (int) round($imageWidth * 0.28));
+            $maxPhoneWidth = max(48, (int) round($imageWidth * 0.42));
 
-            $fontSize = $this->fitFontSizeToWidth($phoneText, $textBoxWidth, $imageWidth);
+            if ($targetHeight > 0) {
+                $fontSize = $this->fitFontSizeToWatermark($phoneText, $targetHeight, $maxPhoneWidth, $imageWidth);
+            } else {
+                $fontSize = $this->fitFontSizeToWidth($phoneText, $maxPhoneWidth, $imageWidth);
+            }
+
             $textMetrics = $this->measureText($phoneText, $fontSize);
             $textWidth = $textMetrics['width'];
             $textHeight = $textMetrics['height'];
-            $textGap = $targetWidth > 0
-                ? max(4, (int) round($targetHeight * 0.05))
-                : max(6, (int) round($fontSize * 0.35));
         }
 
-        $blockWidth = max($targetWidth, $textWidth);
-        $blockHeight = $targetHeight + ($phoneText !== '' ? $textGap + $textHeight : 0);
+        $horizontalGap = ($phoneText !== '' && $targetWidth > 0)
+            ? max(6, (int) round($targetHeight * 0.12))
+            : 0;
+
+        $blockWidth = $textWidth + $horizontalGap + $targetWidth;
+        $blockHeight = max($targetHeight, $textHeight);
 
         if ($blockWidth <= 0 && $phoneText === '') {
             if ($watermark !== null) {
@@ -180,17 +183,16 @@ class PropertyImageService
             return $image;
         }
 
-        $blockTopY = (int) round(($imageHeight - $blockHeight) / 2);
+        $rowTopY = (int) round(($imageHeight - $blockHeight) / 2);
         $rightEdge = $imageWidth - $padding;
-        $destX = $rightEdge - max($targetWidth, $textWidth);
 
         imagealphablending($image, true);
         imagesavealpha($image, true);
 
-        if ($watermark !== null && $targetWidth > 0 && $targetHeight > 0) {
-            $watermarkX = $rightEdge - $targetWidth;
-            $watermarkY = $blockTopY;
+        $watermarkX = $rightEdge - $targetWidth;
+        $watermarkY = $rowTopY + (int) round(($blockHeight - $targetHeight) / 2);
 
+        if ($watermark !== null && $targetWidth > 0 && $targetHeight > 0) {
             imagealphablending($watermark, true);
             imagesavealpha($watermark, true);
 
@@ -213,10 +215,10 @@ class PropertyImageService
         }
 
         if ($phoneText !== '') {
-            $anchorWidth = $targetWidth > 0 ? $targetWidth : $textWidth;
-            $anchorX = $rightEdge - $anchorWidth;
-            $textX = $anchorX + (int) round(($anchorWidth - $textWidth) / 2);
-            $textY = $blockTopY + $targetHeight + $textGap + $textHeight;
+            $textX = $targetWidth > 0
+                ? $watermarkX - $horizontalGap - $textWidth
+                : $rightEdge - $textWidth;
+            $textY = $this->centeredTextBaselineY($phoneText, $fontSize, $rowTopY, $blockHeight);
 
             $this->drawFadedText($image, $phoneText, $fontSize, $textX, $textY, 50);
         }
@@ -293,6 +295,41 @@ class PropertyImageService
         }
 
         return $minFont;
+    }
+
+    private function fitFontSizeToWatermark(string $text, int $watermarkHeight, int $maxWidth, int $imageWidth): int
+    {
+        $maxFont = max(10, (int) round($imageWidth * 0.035));
+        $minFont = 8;
+        $maxTextHeight = max(8, (int) round($watermarkHeight * 0.78));
+
+        for ($size = $maxFont; $size >= $minFont; $size--) {
+            $metrics = $this->measureText($text, $size);
+
+            if ($metrics['height'] <= $maxTextHeight && $metrics['width'] <= $maxWidth) {
+                return $size;
+            }
+        }
+
+        return $minFont;
+    }
+
+    private function centeredTextBaselineY(string $text, int $fontSize, int $rowTopY, int $blockHeight): int
+    {
+        $fontPath = $this->watermarkFontPath();
+        $rowCenterY = $rowTopY + ($blockHeight / 2);
+
+        if ($fontPath === null) {
+            return (int) round($rowCenterY + ($fontSize / 2));
+        }
+
+        $bbox = imagettfbbox($fontSize, 0, $fontPath, $text);
+
+        if ($bbox === false) {
+            return (int) round($rowCenterY);
+        }
+
+        return (int) round($rowCenterY - (($bbox[1] + $bbox[7]) / 2));
     }
 
     private function drawFadedText(GdImage $image, string $text, int $fontSize, int $x, int $y, int $opacityPercent): void
