@@ -7,6 +7,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -52,11 +53,16 @@ class AssetType extends Model
         'breatedby',
         'seq',
         'image_id',
+        'agent_id'
     ];
 
     public function assets()
     {
         return $this->hasMany(Asset::class);
+    }
+    public function agent()
+    {
+        return $this->belongsTo(Agent::class);
     }
 
     public function customer_assets()
@@ -81,5 +87,21 @@ class AssetType extends Model
         }
 
         return $this->image?->url;
+    }
+
+    public function scopeForAgent(Builder $query, ?string $agentId): Builder
+    {
+        return $query->when(
+            filled($agentId),
+            fn (Builder $builder) => $builder->where('agent_id', $agentId),
+            fn (Builder $builder) => $builder->whereRaw('0 = 1'),
+        );
+    }
+
+    public function scopeOrderedForDisplay(Builder $query): Builder
+    {
+        return $query
+            ->orderBy('seq')
+            ->orderBy('name');
     }
 }

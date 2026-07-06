@@ -41,7 +41,8 @@ class Agent extends Model
         'name',
         'code',
         'logo',
-        'api_key'
+        'api_key',
+        'system_type'
     ];
 
     public function assets()

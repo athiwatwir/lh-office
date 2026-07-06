@@ -16,11 +16,15 @@ use App\Models\Tag;
 use App\Models\Zone;
 use App\Services\ActiveAgentService;
 use App\Services\PropertyAddressService;
+use App\Services\PropertyCopyService;
 use App\Services\PropertyDeletionService;
 use App\Services\PropertyTagService;
+use App\Services\SiteConfigService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PropertyController extends Controller
@@ -29,6 +33,7 @@ class PropertyController extends Controller
         private readonly ActiveAgentService $activeAgent,
         private readonly PropertyAddressService $addressService,
         private readonly PropertyTagService $tagService,
+        private readonly SiteConfigService $siteConfig,
     ) {}
 
     public function index(PropertyIndexRequest $request): View
@@ -134,6 +139,7 @@ class PropertyController extends Controller
             'title' => 'แก้ไขทรัพย์สิน',
             'item' => $item,
             ...$this->formOptions(),
+            'siteFeatures' => $this->siteConfig->featuresForAgent($item->agent),
         ]);
     }
 
@@ -172,7 +178,7 @@ class PropertyController extends Controller
         $exists = Asset::query()
             ->where('agent_id', $agentId)
             ->where('code', $request->code())
-            ->when($excludeId, fn ($query) => $query->where('id', '!=', $excludeId))
+            ->when($excludeId, fn($query) => $query->where('id', '!=', $excludeId))
             ->exists();
 
         $agentName = Agent::query()->whereKey($agentId)->value('name');
@@ -232,11 +238,73 @@ class PropertyController extends Controller
             ], 422);
         }
 
-        $item->update(['agent_id' => $targetAgentId]);
+        $item->update([
+            'agent_id' => $targetAgentId,
+            'asset_type_id' => $request->validated('asset_type_id'),
+        ]);
 
         return response()->json([
             'message' => 'ย้ายทรัพย์สินไปยังเอเจนต์ใหม่เรียบร้อยแล้ว',
             'agent_id' => $targetAgentId,
+            'asset_type_id' => $request->validated('asset_type_id'),
+        ]);
+    }
+
+    public function agentAssetTypes(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'agent_id' => ['required', 'string', Rule::exists('agents', 'id')],
+        ]);
+
+        $types = AssetType::query()
+            ->forAgent($validated['agent_id'])
+            ->orderedForDisplay()
+            ->get(['id', 'name']);
+
+        return response()->json([
+            'data' => $types,
+        ]);
+    }
+
+    public function copyToAgent(PropertyTransferAgentRequest $request, string $property): JsonResponse
+    {
+        $item = Asset::query()
+            ->with(['address', 'tags', 'asset_images.image'])
+            ->findOrFail($property);
+
+        $activeAgentId = $this->activeAgent->id();
+        $targetAgentId = $request->validated('agent_id');
+
+        if ($activeAgentId && $item->agent_id !== $activeAgentId) {
+            return response()->json([
+                'message' => 'ไม่สามารถคัดลอกทรัพย์สินที่ไม่อยู่ในเอเจนต์ปัจจุบันได้',
+            ], 403);
+        }
+
+        if ($item->agent_id === $targetAgentId) {
+            return response()->json([
+                'message' => 'กรุณาเลือกเอเจนต์ปลายทางที่แตกต่างจากเอเจนต์ปัจจุบัน',
+            ], 422);
+        }
+
+        try {
+            $copy = app(PropertyCopyService::class)->copyToAgent(
+                $item,
+                $targetAgentId,
+                $request->validated('asset_type_id'),
+                Auth::id(),
+            );
+        } catch (\Throwable $exception) {
+            return response()->json([
+                'message' => $exception->getMessage() ?: 'คัดลอกทรัพย์สินไม่สำเร็จ',
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => "คัดลอกทรัพย์สินไปยังเอเจนต์ใหม่เรียบร้อยแล้ว (รหัส: {$copy->code})",
+            'property_id' => $copy->id,
+            'code' => $copy->code,
+            'edit_url' => route('property.edit', $copy),
         ]);
     }
 
@@ -274,11 +342,15 @@ class PropertyController extends Controller
         }
 
         return [
-            'assetTypes' => AssetType::query()->orderBy('seq')->orderBy('name')->get(['id', 'name']),
+            'assetTypes' => AssetType::query()
+                ->forAgent($this->activeAgent->id())
+                ->orderedForDisplay()
+                ->get(['id', 'name']),
             'zones' => Zone::query()->orderBy('name')->get(['id', 'name']),
             'agents' => $agentsQuery->get(['id', 'firstname', 'lastname', 'usercode']),
             'activeAgent' => $this->activeAgent->agent(),
             'tags' => Tag::query()->orderBy('name')->pluck('name'),
+            'siteFeatures' => $this->siteConfig->featuresForAgent($this->activeAgent->agent()),
         ];
     }
 }

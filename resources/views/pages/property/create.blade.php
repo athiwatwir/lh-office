@@ -7,7 +7,7 @@
         <div class="rounded-2xl border border-gray-200 bg-white">
             <x-form.page-header :title="$title" :back-url="route('property.index')" />
 
-            <div x-data="propertyFormGuard()" @property-code-status="onCodeStatus($event)">
+            <div x-data="propertyFormGuard(@js($siteFeatures))" @property-code-status="onCodeStatus($event)">
                 <form
                     id="property-create-form"
                     method="POST"

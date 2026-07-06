@@ -55,6 +55,7 @@ class PropertyDetailResource extends JsonResource
             'longitude' => $this->longitude,
             'price_amount' => $this->price_amounnt,
             'price_amount_lower' => $this->price_amounnt_lower,
+            'price_special' => $this->price_special,
             'price_per_wah' => $this->price_per_wah,
             'price_rent' => $this->price_rent,
             'listing' => [

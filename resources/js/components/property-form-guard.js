@@ -11,7 +11,11 @@ document.addEventListener('alpine:init', () => {
         },
     });
 
-    Alpine.data('propertyFormGuard', () => ({
+    Alpine.data('propertyFormGuard', (features = {}) => ({
+        features: {
+            zone: features.zone ?? true,
+            special_price: features.special_price ?? false,
+        },
         tick: 0,
 
         init() {
@@ -75,7 +79,7 @@ document.addEventListener('alpine:init', () => {
         get checks() {
             void this.tick;
 
-            return [
+            const checks = [
                 {
                     key: 'code',
                     label: 'รหัสทรัพย์',
@@ -107,6 +111,12 @@ document.addEventListener('alpine:init', () => {
                     done: this.fieldValue('user_id') !== '',
                 },
             ];
+
+            if (! this.features.zone) {
+                return checks.filter((check) => check.key !== 'zone_id');
+            }
+
+            return checks;
         },
 
         codeHint() {

@@ -71,9 +71,11 @@ Route::middleware('auth')->group(function () {
     Route::get('property-views', [PropertyViewRankingController::class, 'index'])->name('property.views.index');
     Route::put('system-user/{system_user}/password', [SystemUserController::class, 'updatePassword'])->name('system-user.password.update');
     Route::get('property/check-code', [PropertyController::class, 'checkCode'])->name('property.check-code');
+    Route::get('property/agent-asset-types', [PropertyController::class, 'agentAssetTypes'])->name('property.agent-asset-types');
     Route::patch('property/{property}/isactive', [PropertyController::class, 'updateIsactive'])->name('property.isactive.update');
     Route::patch('property/{property}/isrecommend', [PropertyController::class, 'updateIsrecommend'])->name('property.isrecommend.update');
     Route::patch('property/{property}/agent', [PropertyController::class, 'transferAgent'])->name('property.agent.update');
+    Route::post('property/{property}/copy', [PropertyController::class, 'copyToAgent'])->name('property.copy');
     Route::get('article/{article}', [ArticleController::class, 'show'])->name('article.show');
     Route::get('property/{property}', [PropertyController::class, 'show'])->name('property.show');
     Route::get('propertyRequest/{propertyRequest}', [PropertyRequestController::class, 'show'])->name('propertyRequest.show');

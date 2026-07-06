@@ -34,12 +34,14 @@ class PropertyListResource extends JsonResource
                 'name' => $this->agent?->name,
                 'code' => $this->agent?->code,
             ]),
-            'zone' => $this->whenLoaded('zone', fn() => [
+            'zone' => $this->whenLoaded('zone', fn () => [
                 'id' => $this->zone?->id,
                 'name' => $this->zone?->name,
             ]),
             'price_amount' => $this->price_amounnt,
+            'price_special' => $this->price_special,
             'price_rent' => $this->price_rent,
+            'is_special_price' => $this->isspecial_marketprice === 'Y',
             'listing' => [
                 'sale' => $this->issale === 'Y',
                 'rent' => $this->isrent === 'Y',

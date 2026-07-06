@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PropertyTypeRequest;
 use App\Models\AssetType;
+use App\Services\ActiveAgentService;
 use App\Services\AssetTypeImageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
@@ -14,6 +15,7 @@ use Illuminate\View\View;
 class PropertyTypeController extends Controller
 {
     public function __construct(
+        private readonly ActiveAgentService $activeAgent,
         private readonly AssetTypeImageService $assetTypeImage,
     ) {}
 
@@ -22,11 +24,13 @@ class PropertyTypeController extends Controller
      */
     public function index(): View
     {
+        $activeAgentId = $this->activeAgent->id();
+
         $data = AssetType::query()
             ->with('image')
             ->withCount(['assets', 'customer_assets'])
-            ->orderBy('seq')
-            ->orderBy('name')
+            ->forAgent($activeAgentId)
+            ->orderedForDisplay()
             ->paginate(20);
 
         return view('pages.property-type.index', [
@@ -40,7 +44,8 @@ class PropertyTypeController extends Controller
      */
     public function create(): View
     {
-        $nextSeq = (int) AssetType::query()->max('seq') + 10;
+        $activeAgentId = $this->activeAgent->id();
+        $nextSeq = (int) AssetType::query()->forAgent($activeAgentId)->max('seq') + 10;
 
         return view('pages.property-type.create', [
             'title' => 'เพิ่มประเภททรัพย์สิน',
@@ -55,11 +60,20 @@ class PropertyTypeController extends Controller
      */
     public function store(PropertyTypeRequest $request): RedirectResponse
     {
+        if (! $this->activeAgent->hasAgent()) {
+            return back()
+                ->withInput()
+                ->withErrors(['agent' => 'กรุณาเลือกเอเจนต์ที่ใช้งานก่อนเพิ่มประเภททรัพย์สิน']);
+        }
+
+        $activeAgentId = $this->activeAgent->id();
+
         $assetType = AssetType::query()->create([
             'name' => $request->validated('name'),
             'seq' => $request->validated('seq'),
             'created' => now(),
             'breatedby' => Auth::id(),
+            'agent_id' => $activeAgentId,
         ]);
 
         $this->storeCoverImage($request, $assetType);
@@ -77,6 +91,7 @@ class PropertyTypeController extends Controller
         $item = AssetType::query()
             ->with('image')
             ->withCount(['assets', 'customer_assets'])
+            ->forAgent($this->activeAgent->id())
             ->findOrFail($propertyType);
 
         return view('pages.property-type.edit', [
@@ -92,6 +107,7 @@ class PropertyTypeController extends Controller
     {
         $item = AssetType::query()
             ->with('image')
+            ->forAgent($this->activeAgent->id())
             ->findOrFail($propertyType);
 
         $item->update([
@@ -111,7 +127,9 @@ class PropertyTypeController extends Controller
      */
     public function destroy(string $propertyType): RedirectResponse
     {
-        $item = AssetType::query()->findOrFail($propertyType);
+        $item = AssetType::query()
+            ->forAgent($this->activeAgent->id())
+            ->findOrFail($propertyType);
 
         if ($item->isInUse()) {
             return redirect()
@@ -161,7 +179,7 @@ class PropertyTypeController extends Controller
 
         if (! $file->isValid()) {
             throw ValidationException::withMessages([
-                'pic' => 'อัปโหลดรูปไม่สำเร็จ กรุณาลองไฟล์ที่เล็กลง (ไม่เกิน '.ini_get('upload_max_filesize').')',
+                'pic' => 'อัปโหลดรูปไม่สำเร็จ กรุณาลองไฟล์ที่เล็กลง (ไม่เกิน ' . ini_get('upload_max_filesize') . ')',
             ]);
         }
 

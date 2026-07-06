@@ -171,6 +171,14 @@
                         {{ $item->price_amounnt ? number_format($item->price_amounnt) . ' บาท' : '-' }}
                     </dd>
                 </div>
+                @if (($item->isspecial_marketprice ?? 'N') === 'Y' && $item->price_special)
+                <div>
+                    <dt class="mb-1 text-xs text-gray-500">ราคาพิเศษ</dt>
+                    <dd class="text-lg font-semibold text-error-600">
+                        {{ number_format($item->price_special) }} บาท
+                    </dd>
+                </div>
+                @endif
                 <div>
                     <dt class="mb-1 text-xs text-gray-500">ราคาเช่า</dt>
                     <dd class="text-sm font-medium text-gray-800">

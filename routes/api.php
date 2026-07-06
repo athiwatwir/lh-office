@@ -6,10 +6,13 @@ use App\Http\Controllers\Api\V1\CustomerAssetController;
 use App\Http\Controllers\Api\V1\PropertyController;
 use App\Http\Controllers\Api\V1\PropertyTypeController;
 use App\Http\Controllers\Api\V1\SellerApiController;
+use App\Http\Controllers\Api\V1\SiteConfigController;
 use App\Http\Controllers\Api\V1\TagController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['agent.api'])->prefix('v1')->group(function (): void {
+    Route::get('site-config', [SiteConfigController::class, 'show'])->name('api.v1.site-config.show');
+
     Route::get('property-types', [PropertyTypeController::class, 'index'])->name('api.v1.property-types.index');
 
     Route::get('tags', [TagController::class, 'index'])->name('api.v1.tags.index');

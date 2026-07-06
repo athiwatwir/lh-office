@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\AuthenticateAgentApiKey;
 use App\Http\Requests\Api\PropertyIndexRequest;
 use App\Http\Requests\Api\PropertySearchRequest;
 use App\Http\Resources\Api\PropertyDetailResource;
 use App\Http\Resources\Api\PropertyListResource;
+use App\Models\Agent;
 use App\Models\Asset;
 use App\Services\AssetViewService;
 use App\Services\PropertyApiImageWarmer;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class PropertyController extends Controller
@@ -22,44 +25,32 @@ class PropertyController extends Controller
 
     public function index(PropertyIndexRequest $request): AnonymousResourceCollection
     {
+        $agent = $this->apiAgent($request);
+
         $properties = Asset::query()
             ->active()
-            ->with([
-                'asset_type:id,name',
-                'agent:id,name,code',
-                'zone:id,name',
-                'user:id,firstname,lastname,phone',
-                'address:id,amphur',
-                'asset_images' => fn($query) => $query
-                    ->orderByRaw("CASE WHEN isdefault = 'Y' THEN 0 ELSE 1 END")
-                    ->orderBy('seq')
-                    ->limit(1)
-                    ->with('image'),
-            ])
+            ->where('agent_id', $agent->id)
+            ->with($this->listRelations())
             ->withCount('asset_images')
             ->when(
                 $request->assetTypeId(),
-                fn($query) => $query->where('asset_type_id', $request->assetTypeId()),
-            )
-            ->when(
-                $request->agentId(),
-                fn($query) => $query->where('agent_id', $request->agentId()),
+                fn ($query) => $query->where('asset_type_id', $request->assetTypeId()),
             )
             ->when(
                 $request->userId(),
-                fn($query) => $query->where('user_id', $request->userId()),
+                fn ($query) => $query->where('user_id', $request->userId()),
             )
             ->when(
                 $request->zoneId(),
-                fn($query) => $query->where('zone_id', $request->zoneId()),
+                fn ($query) => $query->where('zone_id', $request->zoneId()),
             )
             ->when(
                 $request->isRecommendFilter() === true,
-                fn($query) => $query->where('isrecommend', 'Y'),
+                fn ($query) => $query->where('isrecommend', 'Y'),
             )
             ->when(
                 $request->isRecommendFilter() === false,
-                fn($query) => $query->where(fn($builder) => $builder
+                fn ($query) => $query->where(fn ($builder) => $builder
                     ->where('isrecommend', '!=', 'Y')
                     ->orWhereNull('isrecommend')),
             )
@@ -71,19 +62,14 @@ class PropertyController extends Controller
         return PropertyListResource::collection($properties);
     }
 
-    public function show(string $property): PropertyDetailResource
+    public function show(Request $request, string $property): PropertyDetailResource
     {
+        $agent = $this->apiAgent($request);
+
         $item = Asset::query()
             ->active()
-            ->with([
-                'asset_type:id,name',
-                'agent:id,name,code,logo',
-                'zone:id,name',
-                'address',
-                'user:id,firstname,lastname,phone,email,lineid,image_id',
-                'user.image',
-                'asset_images' => fn($query) => $query->orderBy('seq')->with('image'),
-            ])
+            ->where('agent_id', $agent->id)
+            ->with($this->detailRelations())
             ->findOrFail($property);
 
         $this->imageWarmer->warmDetailImages($item);
@@ -91,10 +77,13 @@ class PropertyController extends Controller
         return new PropertyDetailResource($item);
     }
 
-    public function recordView(string $property): JsonResponse
+    public function recordView(Request $request, string $property): JsonResponse
     {
+        $agent = $this->apiAgent($request);
+
         $asset = Asset::query()
             ->active()
+            ->where('agent_id', $agent->id)
             ->findOrFail($property);
 
         $result = $this->assetViews->record($asset);
@@ -104,20 +93,12 @@ class PropertyController extends Controller
 
     public function search(PropertySearchRequest $request): AnonymousResourceCollection
     {
+        $agent = $this->apiAgent($request);
+
         $properties = Asset::query()
             ->active()
-            ->with([
-                'asset_type:id,name',
-                'agent:id,name,code',
-                'zone:id,name',
-                'user:id,firstname,lastname,phone',
-                'address:id,amphur',
-                'asset_images' => fn ($query) => $query
-                    ->orderByRaw("CASE WHEN isdefault = 'Y' THEN 0 ELSE 1 END")
-                    ->orderBy('seq')
-                    ->limit(1)
-                    ->with('image'),
-            ])
+            ->where('agent_id', $agent->id)
+            ->with($this->listRelations())
             ->withCount('asset_images')
             ->when(
                 $request->text(),
@@ -162,5 +143,48 @@ class PropertyController extends Controller
         $this->imageWarmer->warmListThumbnails($properties);
 
         return PropertyListResource::collection($properties);
+    }
+
+    private function apiAgent(Request $request): Agent
+    {
+        /** @var Agent $agent */
+        $agent = $request->attributes->get(AuthenticateAgentApiKey::REQUEST_ATTRIBUTE);
+
+        return $agent;
+    }
+
+    /**
+     * @return array<int|string, mixed>
+     */
+    private function listRelations(): array
+    {
+        return [
+            'asset_type:id,name',
+            'agent:id,name,code',
+            'zone:id,name',
+            'user:id,firstname,lastname,phone',
+            'address:id,amphur',
+            'asset_images' => fn ($query) => $query
+                ->orderByRaw("CASE WHEN isdefault = 'Y' THEN 0 ELSE 1 END")
+                ->orderBy('seq')
+                ->limit(1)
+                ->with('image'),
+        ];
+    }
+
+    /**
+     * @return array<int|string, mixed>
+     */
+    private function detailRelations(): array
+    {
+        return [
+            'asset_type:id,name',
+            'agent:id,name,code,logo',
+            'zone:id,name',
+            'address',
+            'user:id,firstname,lastname,phone,email,lineid,image_id',
+            'user.image',
+            'asset_images' => fn ($query) => $query->orderBy('seq')->with('image'),
+        ];
     }
 }

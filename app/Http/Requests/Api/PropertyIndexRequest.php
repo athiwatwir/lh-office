@@ -19,7 +19,6 @@ class PropertyIndexRequest extends FormRequest
     {
         return [
             'asset_type_id' => ['nullable', 'uuid'],
-            'agent_id' => ['nullable', 'uuid'],
             'user_id' => ['nullable', 'uuid'],
             'zone_id' => ['nullable', 'uuid'],
             'isrecommend' => ['nullable', Rule::in(['0', '1', 'true', 'false', 'Y', 'N', 'y', 'n'])],
@@ -31,13 +30,6 @@ class PropertyIndexRequest extends FormRequest
     public function assetTypeId(): ?string
     {
         $value = $this->query('asset_type_id');
-
-        return is_string($value) && $value !== '' ? $value : null;
-    }
-
-    public function agentId(): ?string
-    {
-        $value = $this->query('agent_id');
 
         return is_string($value) && $value !== '' ? $value : null;
     }

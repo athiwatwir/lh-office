@@ -39,6 +39,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property float|null $area_meter
  * @property float|null $price_per_wah
  * @property float|null $price_amounnt
+ * @property float|null $price_special
  * @property string|null $option
  * @property string|null $address_id
  * @property string $zone_id
@@ -104,6 +105,7 @@ class Asset extends Model
         'area_meter' => 'float',
         'price_per_wah' => 'float',
         'price_amounnt' => 'float',
+        'price_special' => 'float',
         'area_width' => 'float',
         'area_long' => 'float',
         'price_amounnt_lower' => 'float',
@@ -158,7 +160,8 @@ class Asset extends Model
         'agent_id',
         'isactive',
         'isrecommend',
-        'view_count'
+        'view_count',
+        'price_special'
     ];
 
     public function address()
@@ -254,6 +257,7 @@ class Asset extends Model
             'zone_id',
             'agent_id',
             'price_amounnt',
+            'price_special',
             'price_rent',
             'isactive',
             'isrecommend',
@@ -265,6 +269,7 @@ class Asset extends Model
             'issellout',
             'issaledown',
             'youtube_link',
+            'isspecial_marketprice',
         ]);
     }
 }

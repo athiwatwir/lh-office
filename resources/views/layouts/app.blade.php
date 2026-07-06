@@ -31,10 +31,10 @@
 
                     if (this.theme === 'dark') {
                         html.classList.add('dark');
-                        document.body?.classList.add('dark', 'bg-gray-900');
+                        document.body.classList.add('dark', 'bg-gray-900');
                     } else {
                         html.classList.remove('dark');
-                        document.body?.classList.remove('dark', 'bg-gray-900');
+                        document.body.classList.remove('dark', 'bg-gray-900');
                     }
                 }
             });
@@ -65,18 +65,18 @@
             });
 
             Alpine.store('activeAgent', {
-                modalOpen: false,
-                required: false,
-                open() {
+                modalOpen: false
+                , required: false
+                , open() {
                     this.required = false;
                     this.modalOpen = true;
-                },
-                close() {
-                    if (! this.required) {
+                }
+                , close() {
+                    if (!this.required) {
                         this.modalOpen = false;
                     }
-                },
-                setRequired(value) {
+                }
+                , setRequired(value) {
                     this.required = value;
                     if (value) {
                         this.modalOpen = true;
@@ -85,25 +85,30 @@
             });
 
             Alpine.store('notify', {
-                items: [],
-                show(variant, message, duration = 4000) {
+                items: []
+                , show(variant, message, duration = 4000) {
                     const id = Date.now() + Math.random();
-                    const item = { id, variant, message, visible: true };
+                    const item = {
+                        id
+                        , variant
+                        , message
+                        , visible: true
+                    };
 
                     this.items.push(item);
 
                     setTimeout(() => this.dismiss(id), duration);
-                },
-                success(message) {
+                }
+                , success(message) {
                     this.show('success', message);
-                },
-                error(message) {
+                }
+                , error(message) {
                     this.show('error', message);
-                },
-                dismiss(id) {
+                }
+                , dismiss(id) {
                     const item = this.items.find((entry) => entry.id === id);
 
-                    if (! item) {
+                    if (!item) {
                         return;
                     }
 
@@ -112,13 +117,13 @@
                     setTimeout(() => {
                         this.items = this.items.filter((entry) => entry.id !== id);
                     }, 200);
-                },
-            });
+                }
+            , });
 
-            @if (session('success'))
+            @if(session('success'))
             Alpine.store('notify').success(@js(session('success')));
             @endif
-            @if (session('error'))
+            @if(session('error'))
             Alpine.store('notify').error(@js(session('error')));
             @endif
         });
@@ -157,7 +162,7 @@
     <x-common.toast-container />
 
     @auth
-        <x-workspace.agent-selector-modal />
+    <x-workspace.agent-selector-modal />
     @endauth
 
     <div class="min-h-screen xl:flex">

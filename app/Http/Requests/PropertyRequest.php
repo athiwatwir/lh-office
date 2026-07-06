@@ -2,10 +2,12 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Agent;
 use App\Models\Asset;
+use App\Services\ActiveAgentService;
+use App\Services\SiteConfigService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Services\ActiveAgentService;
 
 class PropertyRequest extends FormRequest
 {
@@ -19,12 +21,17 @@ class PropertyRequest extends FormRequest
      */
     public function rules(): array
     {
+        $agent = $this->resolveAgent();
         $propertyId = $this->route('property');
-        $agentId = $propertyId
+        $agentId = $agent?->id ?? ($propertyId
             ? Asset::query()->whereKey($propertyId)->value('agent_id')
-            : app(ActiveAgentService::class)->id();
+            : app(ActiveAgentService::class)->id());
 
-        return [
+        $siteConfig = app(SiteConfigService::class);
+        $zoneEnabled = $siteConfig->enabledForAgent($agent, 'zone');
+        $specialPriceEnabled = $siteConfig->enabledForAgent($agent, 'special_price');
+
+        $rules = [
             'code' => [
                 'required',
                 'string',
@@ -35,10 +42,16 @@ class PropertyRequest extends FormRequest
             ],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'asset_type_id' => ['required', 'string', Rule::exists('asset_types', 'id')],
-            'zone_id' => ['required', 'string', Rule::exists('zones', 'id')],
+            'asset_type_id' => [
+                'required',
+                'string',
+                Rule::exists('asset_types', 'id')->where(
+                    fn ($query) => $query->where('agent_id', $agentId),
+                ),
+            ],
             'user_id' => ['required', 'string', Rule::exists('users', 'id')],
             'price_amounnt' => ['nullable', 'numeric', 'min:0'],
+            'price_per_wah' => ['nullable', 'numeric', 'min:0'],
             'price_rent' => ['nullable', 'numeric', 'min:0'],
             'price_amounnt_lower' => ['nullable', 'numeric', 'min:0'],
             'bedroom' => ['nullable', 'integer', 'min:0'],
@@ -73,6 +86,24 @@ class PropertyRequest extends FormRequest
             'iscovering' => ['nullable', Rule::in(['Y', 'N'])],
             'isdweller' => ['nullable', Rule::in(['Y', 'N'])],
         ];
+
+        if ($zoneEnabled) {
+            $rules['zone_id'] = ['required', 'string', Rule::exists('zones', 'id')];
+        } else {
+            $rules['zone_id'] = ['nullable', 'string', Rule::exists('zones', 'id')];
+        }
+
+        if ($specialPriceEnabled) {
+            $rules['isspecial_marketprice'] = ['nullable', Rule::in(['Y', 'N'])];
+            $rules['price_special'] = [
+                'nullable',
+                'numeric',
+                'min:0',
+                Rule::requiredIf(fn () => $this->boolean('isspecial_marketprice')),
+            ];
+        }
+
+        return $rules;
     }
 
     /**
@@ -88,8 +119,11 @@ class PropertyRequest extends FormRequest
             'zone_id' => 'โซน',
             'user_id' => 'ตัวแทน',
             'price_amounnt' => 'ราคาขาย',
+            'price_special' => 'ราคาพิเศษ',
+            'price_per_wah' => 'ราคาต่อ ตร.ว.',
             'price_rent' => 'ราคาเช่า',
             'price_amounnt_lower' => 'ราคาต่ำสุด',
+            'isspecial_marketprice' => 'ราคาพิเศษ',
             'bedroom' => 'ห้องนอน',
             'bathroom' => 'ห้องน้ำ',
             'parking' => 'ที่จอดรถ',
@@ -119,7 +153,14 @@ class PropertyRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        foreach (['issale', 'isrent', 'issalerent', 'issellout', 'issaledown', 'iscovering', 'isdweller'] as $field) {
+        $agent = $this->resolveAgent();
+        $specialPriceEnabled = app(SiteConfigService::class)->enabledForAgent($agent, 'special_price');
+
+        if ($specialPriceEnabled && ! $this->has('isspecial_marketprice')) {
+            $this->merge(['isspecial_marketprice' => 'N']);
+        }
+
+        foreach (['issale', 'isrent', 'issalerent', 'issellout', 'issaledown', 'iscovering', 'isdweller', 'isspecial_marketprice'] as $field) {
             if (! $this->has($field)) {
                 continue;
             }
@@ -128,6 +169,10 @@ class PropertyRequest extends FormRequest
                 $field => $this->boolean($field) ? 'Y' : 'N',
             ]);
         }
+
+        if ($specialPriceEnabled && $this->input('isspecial_marketprice') !== 'Y') {
+            $this->merge(['price_special' => null]);
+        }
     }
 
     /**
@@ -135,14 +180,17 @@ class PropertyRequest extends FormRequest
      */
     public function assetData(): array
     {
-        return $this->safe()->only([
+        $agent = $this->resolveAgent();
+        $siteConfig = app(SiteConfigService::class);
+
+        $fields = [
             'code',
             'name',
             'description',
             'asset_type_id',
-            'zone_id',
             'user_id',
             'price_amounnt',
+            'price_per_wah',
             'price_rent',
             'price_amounnt_lower',
             'bedroom',
@@ -165,7 +213,18 @@ class PropertyRequest extends FormRequest
             'isdweller',
             'latitude',
             'longitude',
-        ]);
+        ];
+
+        if ($siteConfig->enabledForAgent($agent, 'zone')) {
+            $fields[] = 'zone_id';
+        }
+
+        if ($siteConfig->enabledForAgent($agent, 'special_price')) {
+            $fields[] = 'isspecial_marketprice';
+            $fields[] = 'price_special';
+        }
+
+        return $this->safe()->only($fields);
     }
 
     /**
@@ -174,5 +233,18 @@ class PropertyRequest extends FormRequest
     public function addressData(): array
     {
         return $this->input('address', []);
+    }
+
+    private function resolveAgent(): ?Agent
+    {
+        $propertyId = $this->route('property');
+
+        if ($propertyId) {
+            $agentId = Asset::query()->whereKey($propertyId)->value('agent_id');
+
+            return $agentId ? Agent::query()->find($agentId) : null;
+        }
+
+        return app(ActiveAgentService::class)->agent();
     }
 }

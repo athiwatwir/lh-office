@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Http\Middleware\AuthenticateAgentApiKey;
+use App\Models\Agent;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,9 +19,18 @@ class StoreCustomerAssetRequest extends FormRequest
      */
     public function rules(): array
     {
+        /** @var Agent $agent */
+        $agent = $this->attributes->get(AuthenticateAgentApiKey::REQUEST_ATTRIBUTE);
+
         return [
             'type' => ['required', Rule::in(['S', 'P', 'sell', 'buy'])],
-            'asset_type_id' => ['required', 'uuid', Rule::exists('asset_types', 'id')],
+            'asset_type_id' => [
+                'required',
+                'uuid',
+                Rule::exists('asset_types', 'id')->where(
+                    fn ($query) => $query->where('agent_id', $agent->id),
+                ),
+            ],
             'zone_id' => ['nullable', 'uuid', Rule::exists('zones', 'id')],
             'asset_type_des' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],

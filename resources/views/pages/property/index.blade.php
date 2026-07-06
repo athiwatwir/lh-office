@@ -41,7 +41,7 @@
             this.detailHtml = '';
         },
     }" class="space-y-6">
-    <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+    <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white mb-30">
         <div class="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div>
                 <h3 class="text-lg font-semibold text-gray-800">{{ $title }}</h3>
@@ -106,6 +106,7 @@
                     </select>
                 </div>
 
+                @if ($siteFeatures['zone'] ?? true)
                 <div>
                     <label for="zone_id" class="mb-1.5 block text-theme-sm font-medium text-gray-700">โซน</label>
                     <select id="zone_id" name="zone_id" class="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10">
@@ -117,6 +118,7 @@
                         @endforeach
                     </select>
                 </div>
+                @endif
 
                 <x-property.agent-picker :agents="$agents" :selected="$filters['user_id']" :with-photos="false" />
             </div>
@@ -233,6 +235,11 @@
                             <div class="whitespace-nowrap text-theme-sm font-medium text-gray-800">
                                 @if ($item->price_amounnt)
                                 <p>{{ number_format($item->price_amounnt) }}</p>
+                                @endif
+                                @if (($siteFeatures['special_price'] ?? false) && ($item->isspecial_marketprice ?? 'N') === 'Y' && $item->price_special)
+                                <p class="mt-0.5 text-theme-xs font-semibold text-error-600">
+                                    พิเศษ {{ number_format($item->price_special) }}
+                                </p>
                                 @endif
                                 @if ($item->price_rent)
                                 <p class="mt-0.5 text-theme-xs font-normal text-gray-500">
