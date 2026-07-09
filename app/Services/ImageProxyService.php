@@ -315,12 +315,21 @@ class ImageProxyService
         $filePath = $this->resolveSourceFilePath($imgPath);
 
         if ($filePath === null) {
+            $legacyBinary = $this->fetchLegacySource($imgPath, $legacyStatus, $legacyError);
+
+            if ($legacyBinary !== null) {
+                return ['binary' => $legacyBinary, 'reason' => '', 'details' => []];
+            }
+
             return [
                 'binary' => null,
-                'reason' => 'source_file_not_found',
+                'reason' => $legacyError !== null ? 'legacy_fetch_failed' : 'source_file_not_found',
                 'details' => [
                     'img_path' => $imgPath,
                     'checked_paths' => $this->checkedSourcePaths($imgPath),
+                    'legacy_url' => Image::resolveLegacyUrl($imgPath),
+                    'http_status' => $legacyStatus,
+                    'error' => $legacyError,
                 ],
             ];
         }
@@ -406,6 +415,24 @@ class ImageProxyService
         }
 
         return $paths;
+    }
+
+    private function fetchLegacySource(string $imgPath, ?int &$status = null, ?string &$error = null): ?string
+    {
+        $status = null;
+        $error = null;
+
+        if (! config('image.mirror_legacy_sources', true)) {
+            return null;
+        }
+
+        $legacyUrl = Image::resolveLegacyUrl($imgPath);
+
+        if ($legacyUrl === null) {
+            return null;
+        }
+
+        return $this->fetchRemote($legacyUrl, $status, $error);
     }
 
     private function fetchRemote(string $url, ?int &$status = null, ?string &$error = null): ?string

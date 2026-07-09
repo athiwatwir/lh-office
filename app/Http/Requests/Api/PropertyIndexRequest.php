@@ -21,6 +21,7 @@ class PropertyIndexRequest extends FormRequest
             'asset_type_id' => ['nullable', 'uuid'],
             'user_id' => ['nullable', 'uuid'],
             'zone_id' => ['nullable', 'uuid'],
+            'tag_id' => ['nullable', 'integer', 'exists:tags,id'],
             'isrecommend' => ['nullable', Rule::in(['0', '1', 'true', 'false', 'Y', 'N', 'y', 'n'])],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
@@ -46,6 +47,13 @@ class PropertyIndexRequest extends FormRequest
         $value = $this->query('zone_id');
 
         return is_string($value) && $value !== '' ? $value : null;
+    }
+
+    public function tagId(): ?int
+    {
+        $value = $this->query('tag_id');
+
+        return is_numeric($value) ? (int) $value : null;
     }
 
     public function isRecommendFilter(): ?bool

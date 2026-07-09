@@ -16,6 +16,7 @@ class TagResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'assets_count' => $this->whenCounted('assets'),
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

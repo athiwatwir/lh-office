@@ -23,23 +23,30 @@ class PropertyDetailResource extends JsonResource
             'code' => $this->code,
             'name' => $this->name,
             'description' => $this->description,
-            'asset_type' => $this->whenLoaded('asset_type', fn () => [
+            'asset_type' => $this->whenLoaded('asset_type', fn() => [
                 'id' => $this->asset_type?->id,
                 'name' => $this->asset_type?->name ?? $this->asset_type_des,
             ]),
-            'agent' => $this->whenLoaded('agent', fn () => [
+            'agent' => $this->whenLoaded('agent', fn() => [
                 'id' => $this->agent?->id,
                 'name' => $this->agent?->name,
                 'code' => $this->agent?->code,
                 'logo_url' => $this->apiImageUrl($this->agent?->logo_url),
             ]),
-            'user' => $this->whenLoaded('user', fn () => $this->user
+            'user' => $this->whenLoaded('user', fn() => $this->user
                 ? new UserResource($this->user)
                 : null),
-            'zone' => $this->whenLoaded('zone', fn () => [
+            'zone' => $this->whenLoaded('zone', fn() => [
                 'id' => $this->zone?->id,
                 'name' => $this->zone?->name,
             ]),
+            'tags' => $this->whenLoaded('tags', fn () => $this->tags
+                ->map(fn ($tag) => [
+                    'id' => $tag->id,
+                    'name' => $tag->name,
+                ])
+                ->values()
+                ->all()),
             'address' => $address ? [
                 'address1' => $address->address1,
                 'address2' => $address->address2,
@@ -54,10 +61,12 @@ class PropertyDetailResource extends JsonResource
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
             'price_amount' => $this->price_amounnt,
+
             'price_amount_lower' => $this->price_amounnt_lower,
             'price_special' => $this->price_special,
             'price_per_wah' => $this->price_per_wah,
             'price_rent' => $this->price_rent,
+            'is_special_price' => $this->isspecial_marketprice === 'Y',
             'listing' => [
                 'sale' => $this->issale === 'Y',
                 'rent' => $this->isrent === 'Y',

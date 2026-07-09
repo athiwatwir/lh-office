@@ -45,6 +45,11 @@ class PropertyController extends Controller
                 fn ($query) => $query->where('zone_id', $request->zoneId()),
             )
             ->when(
+                $request->tagId(),
+                fn ($query, $tagId) => $query->whereHas('tags', fn ($tagQuery) => $tagQuery
+                    ->where('tags.id', $tagId)),
+            )
+            ->when(
                 $request->isRecommendFilter() === true,
                 fn ($query) => $query->where('isrecommend', 'Y'),
             )
@@ -181,6 +186,7 @@ class PropertyController extends Controller
             'asset_type:id,name',
             'agent:id,name,code,logo',
             'zone:id,name',
+            'tags:id,name',
             'address',
             'user:id,firstname,lastname,phone,email,lineid,image_id',
             'user.image',

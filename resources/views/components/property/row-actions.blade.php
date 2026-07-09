@@ -132,8 +132,8 @@
             this.confirmKind = kind;
             this.confirmOpen = true;
         },
-        closeConfirm() {
-            if (! this.loading) {
+        closeConfirm(force = false) {
+            if (force || ! this.loading) {
                 this.confirmOpen = false;
                 this.confirmKind = null;
                 this.selectedAgent = null;
@@ -303,7 +303,7 @@
                 }
 
                 Alpine.store('notify').success(data.message ?? 'ย้ายทรัพย์สินเรียบร้อยแล้ว');
-                this.closeConfirm();
+                this.closeConfirm(true);
                 this.$el.closest('tr')?.remove();
             } catch (error) {
                 Alpine.store('notify').error(error.message ?? 'ย้ายเอเจนต์ไม่สำเร็จ');
@@ -342,7 +342,7 @@
                 }
 
                 Alpine.store('notify').success(data.message ?? 'คัดลอกทรัพย์สินเรียบร้อยแล้ว');
-                this.closeConfirm();
+                this.closeConfirm(true);
                 this.copyOpen = false;
             } catch (error) {
                 Alpine.store('notify').error(error.message ?? 'คัดลอกทรัพย์สินไม่สำเร็จ');
@@ -373,7 +373,7 @@
                 }
 
                 Alpine.store('notify').success(data.message ?? 'อัปเดตทรัพย์แนะนำเรียบร้อยแล้ว');
-                this.closeConfirm();
+                this.closeConfirm(true);
                 window.location.reload();
             } catch (error) {
                 Alpine.store('notify').error(error.message ?? 'อัปเดตทรัพย์แนะนำไม่สำเร็จ');

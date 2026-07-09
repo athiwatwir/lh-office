@@ -131,54 +131,23 @@ $ynFields = [
 
 
             @if ($siteFeatures['special_price'] ?? false)
-            <div
-                class="md:col-span-3 overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50/80 shadow-theme-xs"
-                x-data="{ specialPriceEnabled: @js(old('isspecial_marketprice', ($item->isspecial_marketprice ?? 'N') === 'Y')) }"
-            >
-                <div class="flex flex-col gap-5 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div class="min-w-0">
-                        <p class="text-sm font-semibold text-gray-800">ราคาขายและราคาพิเศษ</p>
-                        <p class="mt-0.5 text-theme-xs text-gray-500">เปิดสวิตช์เพื่อกำหนดราคาพิเศษสำหรับแสดงบนหน้าเว็บ</p>
-                    </div>
+            <input type="hidden" name="isspecial_marketprice" value="1">
 
-                    <label for="isspecial_marketprice_toggle" class="inline-flex shrink-0 cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-2.5 shadow-theme-xs select-none">
-                        <span class="text-theme-sm font-medium text-gray-700">ราคาพิเศษ</span>
-                        <span class="relative inline-flex h-6 w-11 items-center">
-                            <input
-                                type="checkbox"
-                                id="isspecial_marketprice_toggle"
-                                name="isspecial_marketprice"
-                                value="1"
-                                class="peer sr-only"
-                                x-model="specialPriceEnabled"
-                            />
-                            <span class="block h-6 w-11 rounded-full bg-gray-200 transition-colors duration-200 peer-checked:bg-brand-500 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500/20"></span>
-                            <span class="pointer-events-none absolute left-0.5 top-0.5 size-5 rounded-full bg-white shadow-theme-sm transition-transform duration-200 peer-checked:translate-x-5"></span>
-                        </span>
-                    </label>
+            <div class="md:col-span-3 overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50/80 shadow-theme-xs">
+                <div class="border-b border-gray-100 px-5 py-4">
+                    <p class="text-sm font-semibold text-gray-800">ราคาขายและราคาพิเศษ</p>
+                    <p class="mt-0.5 text-theme-xs text-gray-500">กำหนดราคาขายและราคาพิเศษสำหรับแสดงบนหน้าเว็บ</p>
                 </div>
 
-                <div class="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-5 p-5 sm:grid-cols-3">
                     <div>
                         <label for="price_amounnt" class="mb-1.5 block text-theme-sm font-medium text-gray-700">ราคาขาย (บาท)</label>
                         <input id="price_amounnt" type="number" name="price_amounnt" min="0" step="0.01" value="{{ old('price_amounnt', $item->price_amounnt) }}" class="{{ $inputClass }} @error('price_amounnt') border-error-500 @enderror" />
                         @error('price_amounnt')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
                     </div>
 
-                    <div
-                        class="transition-opacity duration-200"
-                        :class="specialPriceEnabled ? 'opacity-100' : 'opacity-50'"
-                    >
-                        <label for="price_special" class="mb-1.5 flex items-center gap-2 text-theme-sm font-medium text-gray-700">
-                            ราคาพิเศษ (บาท)
-                            <span
-                                x-show="specialPriceEnabled"
-                                x-cloak
-                                class="rounded-full bg-brand-50 px-2 py-0.5 text-theme-xs font-medium text-brand-600"
-                            >
-                                เปิดใช้งาน
-                            </span>
-                        </label>
+                    <div>
+                        <label for="price_special" class="mb-1.5 block text-theme-sm font-medium text-gray-700">ราคาพิเศษ (บาท)</label>
                         <input
                             id="price_special"
                             type="number"
@@ -187,9 +156,14 @@ $ynFields = [
                             step="0.01"
                             value="{{ old('price_special', $item->price_special) }}"
                             class="{{ $inputClass }} @error('price_special') border-error-500 @enderror"
-                            :disabled="!specialPriceEnabled"
                         />
                         @error('price_special')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
+                    </div>
+
+                    <div>
+                        <label for="price_per_wah" class="mb-1.5 block text-theme-sm font-medium text-gray-700">ราคาต่อ ตรว. (บาท)</label>
+                        <input id="price_per_wah" type="number" name="price_per_wah" min="0" step="0.01" value="{{ old('price_per_wah', $item->price_per_wah) }}" class="{{ $inputClass }} @error('price_per_wah') border-error-500 @enderror" />
+                        @error('price_per_wah')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
                     </div>
                 </div>
             </div>

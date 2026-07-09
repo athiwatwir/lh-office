@@ -4,6 +4,12 @@
 
 @php
     $activeAgent ??= app(\App\Services\ActiveAgentService::class)->agent();
+    $siteProfile = $activeAgent
+        ? app(\App\Services\SiteConfigService::class)->profileForAgent($activeAgent)
+        : null;
+    $systemType = filled($activeAgent?->system_type)
+        ? strtoupper(trim((string) $activeAgent->system_type))
+        : null;
 @endphp
 
 @if ($activeAgent)
@@ -23,7 +29,17 @@
             </span>
 
             <span class="min-w-0">
-                <span class="block text-theme-xs text-gray-500">เอเจนต์ที่ใช้งาน</span>
+                <span class="flex flex-wrap items-center gap-1.5 text-theme-xs text-gray-500">
+                    <span>เอเจนต์ที่ใช้งาน</span>
+                    @if ($siteProfile)
+                        <span class="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-brand-600">
+                            System {{ $siteProfile }}
+                        </span>
+                        @if ($systemType === null)
+                            <span class="text-[11px] text-gray-400">(default)</span>
+                        @endif
+                    @endif
+                </span>
                 <span class="block max-w-[160px] truncate text-sm font-semibold text-gray-800">{{ $activeAgent->name }}</span>
             </span>
 

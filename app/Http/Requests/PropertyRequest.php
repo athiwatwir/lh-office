@@ -95,12 +95,7 @@ class PropertyRequest extends FormRequest
 
         if ($specialPriceEnabled) {
             $rules['isspecial_marketprice'] = ['nullable', Rule::in(['Y', 'N'])];
-            $rules['price_special'] = [
-                'nullable',
-                'numeric',
-                'min:0',
-                Rule::requiredIf(fn () => $this->boolean('isspecial_marketprice')),
-            ];
+            $rules['price_special'] = ['nullable', 'numeric', 'min:0'];
         }
 
         return $rules;
@@ -156,11 +151,11 @@ class PropertyRequest extends FormRequest
         $agent = $this->resolveAgent();
         $specialPriceEnabled = app(SiteConfigService::class)->enabledForAgent($agent, 'special_price');
 
-        if ($specialPriceEnabled && ! $this->has('isspecial_marketprice')) {
-            $this->merge(['isspecial_marketprice' => 'N']);
+        if ($specialPriceEnabled) {
+            $this->merge(['isspecial_marketprice' => 'Y']);
         }
 
-        foreach (['issale', 'isrent', 'issalerent', 'issellout', 'issaledown', 'iscovering', 'isdweller', 'isspecial_marketprice'] as $field) {
+        foreach (['issale', 'isrent', 'issalerent', 'issellout', 'issaledown', 'iscovering', 'isdweller'] as $field) {
             if (! $this->has($field)) {
                 continue;
             }
@@ -168,10 +163,6 @@ class PropertyRequest extends FormRequest
             $this->merge([
                 $field => $this->boolean($field) ? 'Y' : 'N',
             ]);
-        }
-
-        if ($specialPriceEnabled && $this->input('isspecial_marketprice') !== 'Y') {
-            $this->merge(['price_special' => null]);
         }
     }
 
