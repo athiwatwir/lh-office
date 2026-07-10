@@ -45,6 +45,7 @@ class UserImageService
         }
 
         $this->deleteManagedFile($image->img_path);
+        $this->imageProxy->invalidate($image);
         $user->update(['image_id' => null]);
         $image->delete();
     }

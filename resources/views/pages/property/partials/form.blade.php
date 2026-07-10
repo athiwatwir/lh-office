@@ -141,22 +141,14 @@ $ynFields = [
 
                 <div class="grid grid-cols-1 gap-5 p-5 sm:grid-cols-3">
                     <div>
-                        <label for="price_amounnt" class="mb-1.5 block text-theme-sm font-medium text-gray-700">ราคาขาย (บาท)</label>
+                        <label for="price_amounnt" class="mb-1.5 block text-theme-sm font-medium text-gray-700">ราคาตลาด (บาท)</label>
                         <input id="price_amounnt" type="number" name="price_amounnt" min="0" step="0.01" value="{{ old('price_amounnt', $item->price_amounnt) }}" class="{{ $inputClass }} @error('price_amounnt') border-error-500 @enderror" />
                         @error('price_amounnt')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
                     </div>
 
                     <div>
                         <label for="price_special" class="mb-1.5 block text-theme-sm font-medium text-gray-700">ราคาพิเศษ (บาท)</label>
-                        <input
-                            id="price_special"
-                            type="number"
-                            name="price_special"
-                            min="0"
-                            step="0.01"
-                            value="{{ old('price_special', $item->price_special) }}"
-                            class="{{ $inputClass }} @error('price_special') border-error-500 @enderror"
-                        />
+                        <input id="price_special" type="number" name="price_special" min="0" step="0.01" value="{{ old('price_special', $item->price_special) }}" class="{{ $inputClass }} @error('price_special') border-error-500 @enderror" />
                         @error('price_special')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
                     </div>
 

@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class AssetImage
- * 
+ *
  * @property string $id
  * @property string $asset_id
  * @property string $image_id
@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
- * 
+ *
  * @property Image $image
  * @property Asset $asset
  *
@@ -31,31 +31,37 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class AssetImage extends Model
 {
-	use SoftDeletes;
-	use HasUuids;
-	protected $table = 'asset_images';
-	public $incrementing = false;
+    use SoftDeletes;
+    use HasUuids;
+    protected $table = 'asset_images';
+    public $incrementing = false;
 
-	protected $casts = [
-		'created' => 'datetime',
-		'seq' => 'int'
-	];
+    protected $casts = [
+        'created' => 'datetime',
+        'seq' => 'int'
+    ];
 
-	protected $fillable = [
-		'asset_id',
-		'image_id',
-		'isdefault',
-		'created',
-		'seq'
-	];
+    protected $fillable = [
+        'asset_id',
+        'image_id',
+        'isdefault',
+        'created',
+        'seq',
+        'customer_asset_id'
+    ];
 
-	public function image()
-	{
-		return $this->belongsTo(Image::class);
-	}
+    public function image()
+    {
+        return $this->belongsTo(Image::class);
+    }
 
-	public function asset()
-	{
-		return $this->belongsTo(Asset::class);
-	}
+    public function asset()
+    {
+        return $this->belongsTo(Asset::class);
+    }
+
+    public function customerAsset()
+    {
+        return $this->belongsTo(CustomerAsset::class);
+    }
 }

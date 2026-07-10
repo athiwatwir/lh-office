@@ -45,6 +45,7 @@ class AssetTypeImageService
         }
 
         $this->deleteManagedFile($image->img_path);
+        $this->imageProxy->invalidate($image);
         $assetType->update(['image_id' => null]);
         $image->delete();
     }

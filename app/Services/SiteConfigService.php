@@ -49,6 +49,17 @@ class SiteConfigService
         return $this->defaultProfile();
     }
 
+    public function profileForAgentId(?string $agentId): string
+    {
+        if (blank($agentId)) {
+            return $this->defaultProfile();
+        }
+
+        $agent = Agent::query()->find($agentId);
+
+        return $this->profileForAgent($agent);
+    }
+
     /**
      * @return array<string, bool>
      */

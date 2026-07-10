@@ -66,6 +66,8 @@ class StoreCustomerAssetRequest extends FormRequest
             'address.province' => ['nullable', 'string', 'max:100'],
             'address.zipcode' => ['nullable', 'string', 'max:10'],
             'address.description' => ['nullable', 'string'],
+            'images' => ['nullable', 'array'],
+            'images.*' => ['required', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:10240'],
         ];
     }
 
@@ -132,6 +134,24 @@ class StoreCustomerAssetRequest extends FormRequest
     }
 
     /**
+     * @return list<\Illuminate\Http\UploadedFile>
+     */
+    public function images(): array
+    {
+        $files = $this->file('images');
+
+        if ($files === null) {
+            return [];
+        }
+
+        if (! is_array($files)) {
+            return [$files];
+        }
+
+        return array_values(array_filter($files));
+    }
+
+    /**
      * @return array<string, string>
      */
     public function attributes(): array
@@ -146,6 +166,8 @@ class StoreCustomerAssetRequest extends FormRequest
             'customer.tel' => 'เบอร์โทรลูกค้า',
             'customer.email' => 'อีเมลลูกค้า',
             'customer.lineid' => 'Line ID',
+            'images' => 'รูปภาพ',
+            'images.*' => 'รูปภาพ',
         ];
     }
 }

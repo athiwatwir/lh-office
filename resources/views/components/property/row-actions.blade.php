@@ -27,6 +27,7 @@
         deleteOpen: false,
         confirmOpen: false,
         confirmKind: null,
+        preparingKind: null,
         loading: false,
         isRecommended: @js(($property->isrecommend ?? 'N') === 'Y'),
         agents: @js($agentsPayload),
@@ -191,6 +192,7 @@
         },
         async prepareTransfer(agent) {
             this.loading = true;
+            this.preparingKind = 'transfer';
             this.selectedAgent = agent;
             this.moveOpen = false;
 
@@ -205,10 +207,12 @@
                 this.openConfirm('transfer');
             } finally {
                 this.loading = false;
+                this.preparingKind = null;
             }
         },
         async prepareCopy(agent) {
             this.loading = true;
+            this.preparingKind = 'copy';
             this.selectedAgent = agent;
             this.copyOpen = false;
 
@@ -223,6 +227,7 @@
                 this.openConfirm('copy');
             } finally {
                 this.loading = false;
+                this.preparingKind = null;
             }
         },
         openRecommendConfirm() {
@@ -483,6 +488,19 @@
                     </button>
                 </template>
             </div>
+        </div>
+    </div>
+
+    <div x-show="preparingKind" x-cloak class="fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto p-4 sm:p-5">
+        <div class="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px]"></div>
+
+        <div @click.stop class="relative w-full max-w-sm overflow-hidden rounded-2xl bg-white px-6 py-8 text-center shadow-theme-xl">
+            <div class="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-brand-500"></div>
+            <p class="text-sm font-semibold text-gray-800" x-text="preparingKind === 'copy' ? 'กำลังเตรียมคัดลอกทรัพย์สิน' : 'กำลังเตรียมย้ายทรัพย์สิน'"></p>
+            <p class="mt-2 text-theme-xs text-gray-500">กำลังโหลดประเภททรัพย์ของเอเจนต์ปลายทาง...</p>
+            <p x-show="selectedAgent?.name" x-cloak class="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-theme-xs text-gray-600">
+                เอเจนต์ปลายทาง: <span class="font-semibold text-gray-800" x-text="selectedAgent?.name"></span>
+            </p>
         </div>
     </div>
 

@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Services\ActiveAgentService;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class PropertyTypeRequest extends FormRequest
 {
@@ -18,9 +20,22 @@ class PropertyTypeRequest extends FormRequest
      */
     public function rules(): array
     {
+        $propertyTypeId = $this->route('propertyType');
+        $agentId = app(ActiveAgentService::class)->id();
+
         return [
             'name' => ['required', 'string', 'max:255'],
-            'seq' => ['required', 'integer', 'min:0'],
+            'code' => [
+                'required',
+                'string',
+                'max:45',
+                'regex:/^[A-Za-z0-9_-]+$/',
+                Rule::unique('asset_types', 'code')
+                    ->where(fn ($query) => $query
+                        ->where('agent_id', $agentId)
+                        ->whereNull('deleted_at'))
+                    ->ignore($propertyTypeId),
+            ],
             'pic' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:'.self::IMAGE_MAX_KB],
         ];
     }
@@ -32,7 +47,7 @@ class PropertyTypeRequest extends FormRequest
     {
         return [
             'name' => 'ชื่อประเภททรัพย์สิน',
-            'seq' => 'ลำดับการแสดงผล',
+            'code' => 'รหัส',
             'pic' => 'รูปหน้าปก',
         ];
     }
@@ -45,11 +60,23 @@ class PropertyTypeRequest extends FormRequest
         $limit = ini_get('upload_max_filesize') ?: '2M';
 
         return [
+            'code.regex' => 'รหัสต้องเป็นภาษาอังกฤษหรือตัวเลขเท่านั้น และห้ามมีช่องว่าง',
             'pic.uploaded' => "อัปโหลดรูปไม่สำเร็จ ขนาดไฟล์ต้องไม่เกิน {$limit} (ค่าจำกัดของเซิร์ฟเวอร์)",
             'pic.max' => 'ขนาดรูปต้องไม่เกิน :max KB',
             'pic.image' => 'ไฟล์ต้องเป็นรูปภาพเท่านั้น',
             'pic.mimes' => 'รองรับเฉพาะ JPG, PNG, GIF, WebP',
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if (! $this->filled('code')) {
+            return;
+        }
+
+        $this->merge([
+            'code' => trim((string) $this->input('code')),
+        ]);
     }
 
     public static function imageMaxKilobytes(): int

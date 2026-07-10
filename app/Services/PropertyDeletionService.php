@@ -6,6 +6,7 @@ use App\Models\Address;
 use App\Models\Asset;
 use App\Models\AssetImage;
 use App\Models\AssetOption;
+use App\Models\AssetTag;
 use App\Models\AssetViewsDaily;
 use Illuminate\Support\Facades\File;
 
@@ -13,6 +14,7 @@ class PropertyDeletionService
 {
     public function __construct(
         private readonly ImageUploadService $imageUpload,
+        private readonly ImageProxyService $imageProxy,
     ) {}
 
     public function permanentlyDelete(Asset $asset): void
@@ -27,6 +29,7 @@ class PropertyDeletionService
 
         AssetViewsDaily::query()->where('asset_id', $asset->id)->delete();
         AssetOption::withTrashed()->where('asset_id', $asset->id)->forceDelete();
+        AssetTag::query()->where('asset_id', $asset->id)->delete();
 
         $asset->forceDelete();
 
@@ -54,6 +57,7 @@ class PropertyDeletionService
             $assetImage->forceDelete();
 
             if ($image !== null) {
+                $this->imageProxy->invalidate($image);
                 $image->forceDelete();
             }
         }

@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $created
  * @property string|null $breatedby
  * @property int $seq
+ * @property string|null $code
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $deleted_at
@@ -53,7 +54,8 @@ class AssetType extends Model
         'breatedby',
         'seq',
         'image_id',
-        'agent_id'
+        'agent_id',
+        'code'
     ];
 
     public function assets()
@@ -86,21 +88,23 @@ class AssetType extends Model
             $this->load('image');
         }
 
-        return $this->image?->url;
+        return $this->image?->thumbnailUrl()
+            ?? $this->image?->url;
     }
 
     public function scopeForAgent(Builder $query, ?string $agentId): Builder
     {
         return $query->when(
             filled($agentId),
-            fn (Builder $builder) => $builder->where('agent_id', $agentId),
-            fn (Builder $builder) => $builder->whereRaw('0 = 1'),
+            fn(Builder $builder) => $builder->where('agent_id', $agentId),
+            fn(Builder $builder) => $builder->whereRaw('0 = 1'),
         );
     }
 
     public function scopeOrderedForDisplay(Builder $query): Builder
     {
         return $query
+            ->orderByRaw('seq IS NULL')
             ->orderBy('seq')
             ->orderBy('name');
     }

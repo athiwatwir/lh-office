@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\SellerReorderRequest;
 use App\Http\Requests\SellerRequest;
 use App\Models\User;
+use App\Services\SellerDeletionService;
 use App\Services\UserImageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -14,6 +15,7 @@ class SellerController extends Controller
 {
     public function __construct(
         private readonly UserImageService $userImage,
+        private readonly SellerDeletionService $sellerDeletion,
     ) {}
 
     public function index(): View
@@ -21,7 +23,7 @@ class SellerController extends Controller
         $data = User::query()
             ->sellers()
             ->with('image')
-            ->withCount('assets')
+            ->withCount(['assets', 'assetImages'])
             ->orderByRaw('seq IS NULL')
             ->orderBy('seq')
             ->orderBy('firstname')
@@ -114,17 +116,10 @@ class SellerController extends Controller
     {
         $item = User::query()->sellers()->findOrFail($seller);
 
-        if ($item->isInUse()) {
-            return redirect()
-                ->route('seller.index')
-                ->with('error', 'ไม่สามารถลบได้ เนื่องจากมีทรัพย์สินที่ผูกกับตัวแทนนี้อยู่');
-        }
-
-        $this->userImage->deleteLocalProfileImage($item);
-        $item->delete();
+        $this->sellerDeletion->delete($item);
 
         return redirect()
             ->route('seller.index')
-            ->with('success', 'ลบตัวแทนขายเรียบร้อยแล้ว');
+            ->with('success', 'ลบตัวแทนขายและข้อมูลที่เกี่ยวข้องเรียบร้อยแล้ว');
     }
 }

@@ -18,6 +18,7 @@ use App\Services\ActiveAgentService;
 use App\Services\PropertyAddressService;
 use App\Services\PropertyCopyService;
 use App\Services\PropertyDeletionService;
+use App\Services\PropertyProfileTransferService;
 use App\Services\PropertyTagService;
 use App\Services\SiteConfigService;
 use Illuminate\Http\JsonResponse;
@@ -238,9 +239,16 @@ class PropertyController extends Controller
             ], 422);
         }
 
+        $priceAdaptation = app(PropertyProfileTransferService::class)->adaptPricesForAgentTransition(
+            $item,
+            $item->agent_id,
+            $targetAgentId,
+        );
+
         $item->update([
             'agent_id' => $targetAgentId,
             'asset_type_id' => $request->validated('asset_type_id'),
+            ...$priceAdaptation,
         ]);
 
         return response()->json([

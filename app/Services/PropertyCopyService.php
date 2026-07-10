@@ -13,8 +13,25 @@ use RuntimeException;
 
 class PropertyCopyService
 {
+    /**
+     * @var list<string>
+     */
+    private const YN_FIELDS = [
+        'isspecial_marketprice',
+        'isspecial_appraised',
+        'iscovering',
+        'isdweller',
+        'issale',
+        'isrent',
+        'issalerent',
+        'issellout',
+        'issaledown',
+        'isactive',
+    ];
+
     public function __construct(
         private readonly ImageProxyService $imageProxy,
+        private readonly PropertyProfileTransferService $profileTransfer,
     ) {}
 
     public function copyToAgent(Asset $source, string $targetAgentId, string $targetAssetTypeId, ?string $createdBy = null): Asset
@@ -40,8 +57,21 @@ class PropertyCopyService
                 ])
                 ->all();
 
+            foreach (self::YN_FIELDS as $field) {
+                if (array_key_exists($field, $attributes)) {
+                    $attributes[$field] = $this->normalizeYn($attributes[$field]);
+                }
+            }
+
+            $priceAdaptation = $this->profileTransfer->adaptPricesForAgentTransition(
+                $source,
+                $source->agent_id,
+                $targetAgentId,
+            );
+
             $copy = Asset::query()->create([
                 ...$attributes,
+                ...$priceAdaptation,
                 'code' => $this->resolveUniqueCode((string) $source->code, $targetAgentId),
                 'address_id' => $addressId,
                 'agent_id' => $targetAgentId,
@@ -180,5 +210,16 @@ class PropertyCopyService
             ->where('agent_id', $agentId)
             ->where('code', $code)
             ->exists();
+    }
+
+    private function normalizeYn(mixed $value, string $default = 'N'): string
+    {
+        if ($value === null || $value === '') {
+            return $default;
+        }
+
+        $normalized = strtoupper(trim((string) $value));
+
+        return in_array($normalized, ['Y', '1', 'TRUE', 'YES'], true) ? 'Y' : 'N';
     }
 }

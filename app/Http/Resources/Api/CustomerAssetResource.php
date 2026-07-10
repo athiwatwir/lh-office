@@ -70,6 +70,7 @@ class CustomerAssetResource extends JsonResource
                 'zipcode' => $address->zipcode,
                 'description' => $address->description,
             ] : null,
+            'images' => PropertyImageResource::collection($this->whenLoaded('assetImages')),
             'created_at' => $this->created?->toIso8601String(),
         ];
     }

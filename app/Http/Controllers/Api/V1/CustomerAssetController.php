@@ -48,6 +48,7 @@ class CustomerAssetController extends Controller
             ],
             $request->customerData(),
             $request->addressData(),
+            $request->images(),
         );
 
         return (new CustomerAssetResource($customerAsset))

@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PropertyTypeReorderRequest;
 use App\Http\Requests\PropertyTypeRequest;
 use App\Models\AssetType;
 use App\Services\ActiveAgentService;
 use App\Services\AssetTypeImageService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
@@ -31,7 +33,7 @@ class PropertyTypeController extends Controller
             ->withCount(['assets', 'customer_assets'])
             ->forAgent($activeAgentId)
             ->orderedForDisplay()
-            ->paginate(20);
+            ->get();
 
         return view('pages.property-type.index', [
             'title' => 'ประเภทของทรัพย์สิน',
@@ -44,14 +46,9 @@ class PropertyTypeController extends Controller
      */
     public function create(): View
     {
-        $activeAgentId = $this->activeAgent->id();
-        $nextSeq = (int) AssetType::query()->forAgent($activeAgentId)->max('seq') + 10;
-
         return view('pages.property-type.create', [
             'title' => 'เพิ่มประเภททรัพย์สิน',
-            'item' => new AssetType([
-                'seq' => $nextSeq,
-            ]),
+            'item' => new AssetType,
         ]);
     }
 
@@ -67,10 +64,12 @@ class PropertyTypeController extends Controller
         }
 
         $activeAgentId = $this->activeAgent->id();
+        $nextSeq = (int) AssetType::query()->forAgent($activeAgentId)->max('seq') + 10;
 
         $assetType = AssetType::query()->create([
             'name' => $request->validated('name'),
-            'seq' => $request->validated('seq'),
+            'code' => $request->validated('code'),
+            'seq' => $nextSeq,
             'created' => now(),
             'breatedby' => Auth::id(),
             'agent_id' => $activeAgentId,
@@ -112,7 +111,7 @@ class PropertyTypeController extends Controller
 
         $item->update([
             'name' => $request->validated('name'),
-            'seq' => $request->validated('seq'),
+            'code' => $request->validated('code'),
         ]);
 
         $this->replaceCoverImage($request, $item);
@@ -143,6 +142,22 @@ class PropertyTypeController extends Controller
         return redirect()
             ->route('propertyType.index')
             ->with('success', 'ลบประเภททรัพย์สินเรียบร้อยแล้ว');
+    }
+
+    public function reorder(PropertyTypeReorderRequest $request): JsonResponse
+    {
+        $activeAgentId = $this->activeAgent->id();
+
+        foreach ($request->validated('order') as $index => $propertyTypeId) {
+            AssetType::query()
+                ->forAgent($activeAgentId)
+                ->whereKey($propertyTypeId)
+                ->update(['seq' => ($index + 1) * 10]);
+        }
+
+        return response()->json([
+            'message' => 'บันทึกลำดับเรียบร้อยแล้ว',
+        ]);
     }
 
     private function storeCoverImage(PropertyTypeRequest $request, AssetType $assetType): void

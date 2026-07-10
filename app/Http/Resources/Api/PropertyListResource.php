@@ -28,6 +28,7 @@ class PropertyListResource extends JsonResource
             'asset_type' => $this->whenLoaded('asset_type', fn() => [
                 'id' => $this->asset_type?->id,
                 'name' => $this->asset_type?->name ?? $this->asset_type_des,
+                'code' => $this->asset_type?->code,
             ]),
             'agent' => $this->whenLoaded('agent', fn() => [
                 'id' => $this->agent?->id,
@@ -60,7 +61,35 @@ class PropertyListResource extends JsonResource
             'thumbnail_url' => $this->apiImageUrl($defaultImage?->image?->thumbnailUrl(absolute: false)),
             'image_path' => $defaultImage?->image?->img_path,
             'images_count' => $this->whenCounted('asset_images'),
-            'created_at' => $createdAt?->toIso8601String(),
+            'slug' => $this->addressSlug(),
+            //'created_at' => $createdAt?->toIso8601String(),
         ];
+    }
+
+    private function addressSlug(): ?string
+    {
+        if ($this->address === null) {
+            return null;
+        }
+
+        $parts = array_values(array_filter([
+            $this->address->street,
+            $this->address->soi,
+            $this->address->address1,
+        ], filled(...)));
+
+        if ($parts === []) {
+            return null;
+        }
+
+        $slug = implode('-', array_values(array_filter(
+            array_map(
+                static fn(string $part): string => (string) preg_replace('/[^\p{L}\p{N}]+/u', '', trim($part)),
+                $parts,
+            ),
+            filled(...),
+        )));
+
+        return $slug !== '' ? $slug : null;
     }
 }

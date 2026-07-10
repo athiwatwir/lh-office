@@ -6,6 +6,7 @@ use App\Models\CustomerAsset;
 use App\Services\ActiveAgentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class PropertyRequestController extends Controller
@@ -26,7 +27,17 @@ class PropertyRequestController extends Controller
         $title = $isSell ? 'ฝากขายบ้าน-ที่ดิน' : 'ฝากหาบ้าน-ที่ดิน';
 
         $data = CustomerAsset::query()
-            ->with(['customer', 'asset_type', 'zone'])
+            ->with([
+                'customer',
+                'asset_type',
+                'zone',
+                'address',
+                'readByUser:id,firstname,lastname',
+                'assetImages' => fn ($query) => $query
+                    ->orderByRaw("CASE WHEN isdefault = 'Y' THEN 0 ELSE 1 END")
+                    ->orderBy('seq')
+                    ->with('image'),
+            ])
             ->when(
                 $activeAgentId,
                 fn ($query) => $query->where('agent_id', $activeAgentId),
@@ -64,13 +75,22 @@ class PropertyRequestController extends Controller
         $activeAgentId = $this->activeAgent->id();
 
         $item = CustomerAsset::query()
-            ->with(['customer', 'asset_type', 'zone', 'address'])
+            ->with(['customer', 'asset_type', 'zone', 'address', 'readByUser:id,firstname,lastname', 'assetImages.image'])
             ->when(
                 $activeAgentId,
                 fn ($query) => $query->where('agent_id', $activeAgentId),
                 fn ($query) => $query->whereRaw('0 = 1'),
             )
             ->findOrFail($id);
+
+        if (($item->isread ?? 'N') !== 'Y') {
+            $item->update([
+                'isread' => 'Y',
+                'read_by' => Auth::id(),
+            ]);
+        }
+
+        $item->loadMissing(['readByUser:id,firstname,lastname']);
 
         return view('pages.property-request.partials.detail', compact('item'));
     }

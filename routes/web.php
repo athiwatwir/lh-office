@@ -51,6 +51,7 @@ Route::middleware('auth')->group(function () {
 
     Route::patch('seller/reorder', [SellerController::class, 'reorder'])->name('seller.reorder');
     Route::patch('article/reorder', [ArticleController::class, 'reorder'])->name('article.reorder');
+    Route::patch('propertyType/reorder', [PropertyTypeController::class, 'reorder'])->name('propertyType.reorder');
 
     Route::post('tag/bulk', [TagController::class, 'bulkStore'])->name('tag.bulk-store');
     Route::post('tag/import-from-zones', [TagController::class, 'importFromZones'])->name('tag.import-from-zones');

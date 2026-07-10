@@ -48,6 +48,14 @@ use Illuminate\Database\Eloquent\Model;
 class CustomerAsset extends Model
 {
     use HasUuids;
+
+    public const PIC_DIRECTORY = 'upload/customer-asset';
+
+    public static function picDirectory(string $customerAssetId): string
+    {
+        return self::PIC_DIRECTORY . '/' . $customerAssetId;
+    }
+
     protected $table = 'customer_assets';
     public $incrementing = false;
     public $timestamps = false;
@@ -96,7 +104,8 @@ class CustomerAsset extends Model
         'budgets',
         'address_id',
         'agent_id',
-        'isread'
+        'isread',
+        'read_by'
     ];
 
     public function customer()
@@ -122,5 +131,15 @@ class CustomerAsset extends Model
     public function agent()
     {
         return $this->belongsTo(Agent::class);
+    }
+
+    public function assetImages()
+    {
+        return $this->hasMany(AssetImage::class, 'customer_asset_id')->orderBy('seq');
+    }
+
+    public function readByUser()
+    {
+        return $this->belongsTo(User::class, 'read_by');
     }
 }

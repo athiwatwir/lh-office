@@ -25,7 +25,8 @@ class PropertyTypeController extends Controller
         $types = AssetType::query()
             ->with('image')
             ->forAgent($agent->id)
-            ->orderedForDisplay()
+            ->orderBy('seq', 'asc')
+            ->orderBy('name', 'asc')
             ->get();
 
         $this->imageWarmer->warmAssetTypeImages($types);

@@ -41,12 +41,17 @@ class ImageProxyService
         }
 
         $path = '/img-cache/'.$this->publicCacheFilename($image, $variant);
+        $url = $absolute ? url($path) : $path;
 
-        if ($absolute) {
-            return url($path);
+        $version = $image->updated_at?->getTimestamp()
+            ?? $image->created?->getTimestamp()
+            ?? $image->created_at?->getTimestamp();
+
+        if ($version !== null) {
+            $url .= (str_contains($url, '?') ? '&' : '?').'v='.$version;
         }
 
-        return $path;
+        return $url;
     }
 
     public function isCached(Image $image, string $variant): bool

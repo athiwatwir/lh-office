@@ -117,6 +117,9 @@
                     }
 
                     this.detailHtml = await response.text();
+                    this.unreadSellRequests = this.unreadSellRequests.filter(
+                        (item) => String(item.id) !== String(id),
+                    );
                 } catch (error) {
                     this.detailHtml = '<div class=\'p-8 text-center text-sm text-error-600\'>ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง</div>';
                 } finally {

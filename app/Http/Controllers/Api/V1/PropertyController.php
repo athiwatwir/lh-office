@@ -12,6 +12,7 @@ use App\Models\Agent;
 use App\Models\Asset;
 use App\Services\AssetViewService;
 use App\Services\PropertyApiImageWarmer;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -34,28 +35,28 @@ class PropertyController extends Controller
             ->withCount('asset_images')
             ->when(
                 $request->assetTypeId(),
-                fn ($query) => $query->where('asset_type_id', $request->assetTypeId()),
+                fn($query) => $query->where('asset_type_id', $request->assetTypeId()),
             )
             ->when(
                 $request->userId(),
-                fn ($query) => $query->where('user_id', $request->userId()),
+                fn($query) => $query->where('user_id', $request->userId()),
             )
             ->when(
                 $request->zoneId(),
-                fn ($query) => $query->where('zone_id', $request->zoneId()),
+                fn($query) => $query->where('zone_id', $request->zoneId()),
             )
             ->when(
                 $request->tagId(),
-                fn ($query, $tagId) => $query->whereHas('tags', fn ($tagQuery) => $tagQuery
+                fn($query, $tagId) => $query->whereHas('tags', fn($tagQuery) => $tagQuery
                     ->where('tags.id', $tagId)),
             )
             ->when(
                 $request->isRecommendFilter() === true,
-                fn ($query) => $query->where('isrecommend', 'Y'),
+                fn($query) => $query->where('isrecommend', 'Y'),
             )
             ->when(
                 $request->isRecommendFilter() === false,
-                fn ($query) => $query->where(fn ($builder) => $builder
+                fn($query) => $query->where(fn($builder) => $builder
                     ->where('isrecommend', '!=', 'Y')
                     ->orWhereNull('isrecommend')),
             )
@@ -71,11 +72,9 @@ class PropertyController extends Controller
     {
         $agent = $this->apiAgent($request);
 
-        $item = Asset::query()
-            ->active()
-            ->where('agent_id', $agent->id)
+        $item = $this->findActiveProperty($agent, $property)
             ->with($this->detailRelations())
-            ->findOrFail($property);
+            ->firstOrFail();
 
         $this->imageWarmer->warmDetailImages($item);
 
@@ -86,10 +85,7 @@ class PropertyController extends Controller
     {
         $agent = $this->apiAgent($request);
 
-        $asset = Asset::query()
-            ->active()
-            ->where('agent_id', $agent->id)
-            ->findOrFail($property);
+        $asset = $this->findActiveProperty($agent, $property)->firstOrFail();
 
         $result = $this->assetViews->record($asset);
 
@@ -107,40 +103,40 @@ class PropertyController extends Controller
             ->withCount('asset_images')
             ->when(
                 $request->text(),
-                fn ($query, $text) => $query->where(function ($builder) use ($text) {
+                fn($query, $text) => $query->where(function ($builder) use ($text) {
                     $builder
                         ->where('code', 'like', "%{$text}%")
                         ->orWhere('name', 'like', "%{$text}%")
-                        ->orWhereHas('address', fn ($addressQuery) => $addressQuery
+                        ->orWhereHas('address', fn($addressQuery) => $addressQuery
                             ->where('address1', 'like', "%{$text}%"));
                 }),
             )
             ->when(
                 $request->assetTypeId(),
-                fn ($query, $assetTypeId) => $query->where('asset_type_id', $assetTypeId),
+                fn($query, $assetTypeId) => $query->where('asset_type_id', $assetTypeId),
             )
             ->when(
                 $request->province(),
-                fn ($query, $province) => $query->whereHas('address', fn ($addressQuery) => $addressQuery
+                fn($query, $province) => $query->whereHas('address', fn($addressQuery) => $addressQuery
                     ->where('province', 'like', "%{$province}%")),
             )
             ->when(
                 $request->district(),
-                fn ($query, $district) => $query->whereHas('address', fn ($addressQuery) => $addressQuery
+                fn($query, $district) => $query->whereHas('address', fn($addressQuery) => $addressQuery
                     ->where('district', 'like', "%{$district}%")),
             )
             ->when(
                 $request->amphur(),
-                fn ($query, $amphur) => $query->whereHas('address', fn ($addressQuery) => $addressQuery
+                fn($query, $amphur) => $query->whereHas('address', fn($addressQuery) => $addressQuery
                     ->where('amphur', 'like', "%{$amphur}%")),
             )
             ->when(
                 $request->priceMin() !== null,
-                fn ($query) => $query->where('price_amounnt', '>=', $request->priceMin()),
+                fn($query) => $query->where('price_amounnt', '>=', $request->priceMin()),
             )
             ->when(
                 $request->priceMax() !== null,
-                fn ($query) => $query->where('price_amounnt', '<=', $request->priceMax()),
+                fn($query) => $query->where('price_amounnt', '<=', $request->priceMax()),
             )
             ->latestFirst()
             ->paginate($request->perPage());
@@ -159,17 +155,30 @@ class PropertyController extends Controller
     }
 
     /**
+     * Resolve an active property by primary key or assets.code for the given agent.
+     */
+    private function findActiveProperty(Agent $agent, string $property): Builder
+    {
+        return Asset::query()
+            ->active()
+            ->where('agent_id', $agent->id)
+            ->where(function ($query) use ($property) {
+                $query->whereKey($property)->orWhere('code', $property);
+            });
+    }
+
+    /**
      * @return array<int|string, mixed>
      */
     private function listRelations(): array
     {
         return [
-            'asset_type:id,name',
+            'asset_type:id,name,code',
             'agent:id,name,code',
             'zone:id,name',
             'user:id,firstname,lastname,phone',
-            'address:id,amphur',
-            'asset_images' => fn ($query) => $query
+            'address:id,amphur,address1,soi,street',
+            'asset_images' => fn($query) => $query
                 ->orderByRaw("CASE WHEN isdefault = 'Y' THEN 0 ELSE 1 END")
                 ->orderBy('seq')
                 ->limit(1)
@@ -190,7 +199,7 @@ class PropertyController extends Controller
             'address',
             'user:id,firstname,lastname,phone,email,lineid,image_id',
             'user.image',
-            'asset_images' => fn ($query) => $query->orderBy('seq')->with('image'),
+            'asset_images' => fn($query) => $query->orderBy('seq')->with('image'),
         ];
     }
 }

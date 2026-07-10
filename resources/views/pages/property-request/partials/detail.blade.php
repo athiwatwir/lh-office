@@ -226,5 +226,39 @@
                 <p class="whitespace-pre-line text-sm leading-relaxed text-gray-700">{{ $item->description }}</p>
             </section>
         @endif
+
+        @if ($item->assetImages->isNotEmpty())
+            <section class="rounded-2xl border border-gray-200 p-5 lg:col-span-2">
+                <h3 class="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-800">
+                    <i class="lni lni-image text-lg text-brand-500"></i>
+                    รูปภาพ
+                    <span class="text-theme-xs font-normal text-gray-500">({{ $item->assetImages->count() }})</span>
+                </h3>
+                <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                    @foreach ($item->assetImages as $assetImage)
+                        @php
+                            $imageUrl = $assetImage->image?->galleryUrl() ?? $assetImage->image?->thumbnailUrl();
+                        @endphp
+                        @if ($imageUrl)
+                            <div class="group relative overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+                                <div class="aspect-[4/3] overflow-hidden">
+                                    <img
+                                        src="{{ $imageUrl }}"
+                                        alt="รูปคำขอ {{ $loop->iteration }}"
+                                        class="h-full w-full object-cover transition group-hover:scale-105"
+                                        loading="lazy"
+                                    >
+                                </div>
+                                @if ($assetImage->isdefault === 'Y')
+                                    <span class="absolute start-2 top-2 rounded-md bg-brand-500 px-2 py-0.5 text-[11px] font-medium text-white">
+                                        รูปหลัก
+                                    </span>
+                                @endif
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+            </section>
+        @endif
     </div>
 </div>

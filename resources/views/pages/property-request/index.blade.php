@@ -1,16 +1,31 @@
 @extends('layouts.app')
 
 @section('content')
-<x-common.page-breadcrumb :pageTitle="$title" />
+@php
+    $readByNames = collect($data->items())
+        ->filter(fn ($item) => ($item->isread ?? 'N') === 'Y' && $item->readByUser)
+        ->mapWithKeys(fn ($item) => [
+            $item->id => $item->readByUser->name,
+        ]);
+@endphp
 
 <div x-data="{
             open: false,
             loading: false,
             detailHtml: '',
+            unreadIds: @js(collect($data->items())->filter(fn ($item) => ($item->isread ?? 'N') === 'N')->pluck('id')->values()),
+            readByNames: @js($readByNames),
+            currentReaderName: @js(auth()->user()?->name),
             init() {
                 this.$watch('open', value => {
                     document.body.style.overflow = value ? 'hidden' : 'unset';
                 });
+            },
+            isUnread(id) {
+                return this.unreadIds.includes(String(id));
+            },
+            readerName(id) {
+                return this.readByNames[String(id)] || this.readByNames[id] || '-';
             },
             async openDetail(id) {
                 this.open = true;
@@ -30,6 +45,11 @@
                     }
 
                     this.detailHtml = await response.text();
+                    this.unreadIds = this.unreadIds.filter((itemId) => String(itemId) !== String(id));
+
+                    if (this.currentReaderName) {
+                        this.readByNames[String(id)] = this.currentReaderName;
+                    }
                 } catch (error) {
                     this.detailHtml = '<div class=\'p-8 text-center text-sm text-error-600\'>ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง</div>';
                 } finally {
@@ -41,6 +61,8 @@
                 this.detailHtml = '';
             },
         }" class="space-y-6">
+    <x-common.page-breadcrumb :pageTitle="$title" />
+
     <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white">
         <div class="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div>
@@ -79,7 +101,10 @@
             <table class="min-w-full">
                 <thead>
                     <tr class="border-y border-gray-100">
-                        <th class="px-5 py-3 text-start font-normal sm:px-6">
+                        <th class="px-4 py-3 text-center font-normal sm:px-6">
+                            <span class="text-theme-sm text-gray-500">รูป</span>
+                        </th>
+                        <th class="px-4 py-3 text-start font-normal">
                             <span class="text-theme-sm text-gray-500">ลูกค้า</span>
                         </th>
                         <th class="px-4 py-3 text-start font-normal">
@@ -88,6 +113,9 @@
 
                         <th class="px-4 py-3 text-start font-normal">
                             <span class="text-theme-sm text-gray-500">พื้นที่</span>
+                        </th>
+                        <th class="px-4 py-3 text-start font-normal">
+                            <span class="text-theme-sm text-gray-500">ที่อยู่</span>
                         </th>
                         <th class="px-4 py-3 text-start font-normal">
                             <span class="text-theme-sm text-gray-500">
@@ -99,6 +127,9 @@
                         </th>
                         <th class="px-4 py-3 text-start font-normal">
                             <span class="text-theme-sm text-gray-500">วันที่สร้าง</span>
+                        </th>
+                        <th class="px-4 py-3 text-start font-normal">
+                            <span class="text-theme-sm text-gray-500">ผู้อ่าน</span>
                         </th>
                         <th class="px-4 py-3 text-end font-normal">
                             <span class="text-theme-sm text-gray-500">จัดการ</span>
@@ -128,32 +159,66 @@
                     : ($item->budgets ?: '-');
 
                     $assetTypeName = $item->asset_type?->name ?? $item->asset_type_des ?? '-';
-                    $isUnread = ($item->isread ?? 'N') === 'N';
+
+                    $defaultAssetImage = $item->assetImages
+                        ->first(fn ($assetImage) => $assetImage->isdefault === 'Y')
+                        ?? $item->assetImages->first();
+                    $thumbnailUrl = $defaultAssetImage?->image?->thumbnailUrl()
+                        ?? $defaultAssetImage?->image?->galleryUrl();
+                    $imagesCount = $item->assetImages->count();
+
+                    $address = $item->address;
+                    $addressParts = array_filter([
+                        $address?->address1,
+                        $address?->address2,
+                        $address?->street,
+                        $address?->soi ? 'ซ.'.$address->soi : null,
+                        $address?->moo ? 'ม.'.$address->moo : null,
+                        $address?->district,
+                        $address?->amphur,
+                        $address?->province,
+                        $address?->zipcode,
+                    ]);
+                    $addressText = $addressParts ? implode(' ', $addressParts) : '-';
                     @endphp
                     <tr
                         @click="openDetail('{{ $item->id }}')"
-                        @class([
-                            'cursor-pointer transition',
-                            'border-l-4 border-brand-500 bg-brand-50/70 hover:bg-brand-50' => $isUnread,
-                            'border-l-4 border-transparent hover:bg-gray-50/60' => ! $isUnread,
-                        ])
+                        :class="isUnread('{{ $item->id }}')
+                            ? 'cursor-pointer border-l-4 border-brand-500 bg-brand-50/70 transition hover:bg-brand-50'
+                            : 'cursor-pointer border-l-4 border-transparent transition hover:bg-gray-50/60'"
                         role="button"
                         tabindex="0"
                         @keydown.enter="openDetail('{{ $item->id }}')"
                     >
-                        <td class="px-5 py-4 sm:px-6">
+                        <td class="px-4 py-4 text-center sm:px-6">
+                            <span class="relative mx-auto flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+                                @if ($thumbnailUrl)
+                                    <img src="{{ $thumbnailUrl }}" alt="รูปคำขอ" class="h-full w-full object-cover" loading="lazy">
+                                    @if ($imagesCount > 1)
+                                        <span class="absolute bottom-0.5 end-0.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                                            +{{ $imagesCount - 1 }}
+                                        </span>
+                                    @endif
+                                @else
+                                    <i class="lni lni-image text-lg text-gray-300" aria-hidden="true"></i>
+                                @endif
+                            </span>
+                        </td>
+                        <td class="px-4 py-4">
                             <div class="flex items-start gap-2">
-                                @if ($isUnread)
-                                <span class="mt-1 inline-flex shrink-0 rounded-full bg-brand-500 px-2 py-0.5 text-theme-xs font-semibold text-white" title="ยังไม่ได้อ่าน">
+                                <span
+                                    x-show="isUnread('{{ $item->id }}')"
+                                    x-cloak
+                                    class="mt-1 inline-flex shrink-0 rounded-full bg-brand-500 px-2 py-0.5 text-theme-xs font-semibold text-white"
+                                    title="ยังไม่ได้อ่าน"
+                                >
                                     ใหม่
                                 </span>
-                                @endif
                                 <div class="min-w-0">
-                                <p @class([
-                                    'text-theme-sm text-gray-800',
-                                    'font-semibold' => $isUnread,
-                                    'font-medium' => ! $isUnread,
-                                ])>
+                                <p
+                                    class="text-theme-sm text-gray-800"
+                                    :class="isUnread('{{ $item->id }}') ? 'font-semibold' : 'font-medium'"
+                                >
                                     {{ $item->customer?->fullname ?? '-' }}
                                 </p>
                                 @if ($item->customer?->tel)
@@ -165,24 +230,30 @@
                             </div>
                         </td>
                         <td class="px-4 py-4">
-                            <span @class([
-                                'text-theme-sm text-gray-700',
-                                'font-medium text-gray-900' => $isUnread,
-                            ])>{{ $assetTypeName }}</span>
+                            <span
+                                class="text-theme-sm text-gray-700"
+                                :class="isUnread('{{ $item->id }}') ? 'font-medium text-gray-900' : ''"
+                            >{{ $assetTypeName }}</span>
                         </td>
 
                         <td class="px-4 py-4">
-                            <span @class([
-                                'whitespace-nowrap text-theme-sm text-gray-700',
-                                'font-medium text-gray-900' => $isUnread,
-                            ])>{{ $areaText }}</span>
+                            <span
+                                class="whitespace-nowrap text-theme-sm text-gray-700"
+                                :class="isUnread('{{ $item->id }}') ? 'font-medium text-gray-900' : ''"
+                            >{{ $areaText }}</span>
+                        </td>
+                        <td class="max-w-xs px-4 py-4">
+                            <span
+                                class="line-clamp-2 text-theme-sm text-gray-700"
+                                :class="isUnread('{{ $item->id }}') ? 'font-medium text-gray-900' : ''"
+                                title="{{ $addressText }}"
+                            >{{ $addressText }}</span>
                         </td>
                         <td class="px-4 py-4">
-                            <span @class([
-                                'whitespace-nowrap text-theme-sm text-gray-800',
-                                'font-semibold text-brand-700' => $isUnread,
-                                'font-medium' => ! $isUnread,
-                            ])>
+                            <span
+                                class="whitespace-nowrap text-theme-sm text-gray-800"
+                                :class="isUnread('{{ $item->id }}') ? 'font-semibold text-brand-700' : 'font-medium'"
+                            >
                                 {{ $priceText }}
                             </span>
                         </td>
@@ -193,6 +264,19 @@
                         </td>
                         <td class="px-4 py-4">
                             <x-ui.date-time-display :datetime="$item->created" />
+                        </td>
+                        <td class="px-4 py-4">
+                            <span
+                                x-show="isUnread('{{ $item->id }}')"
+                                x-cloak
+                                class="text-theme-xs text-gray-400"
+                            >-</span>
+                            <span
+                                x-show="! isUnread('{{ $item->id }}')"
+                                x-cloak
+                                class="text-theme-sm text-gray-700"
+                                x-text="readerName('{{ $item->id }}')"
+                            ></span>
                         </td>
                         <td class="px-4 py-4 text-end">
                             <form method="POST" action="{{ route('propertyRequest.destroy', $item) }}" onsubmit="event.stopPropagation(); return confirm('ยืนยันการลบรายการนี้?');" class="inline-flex">
