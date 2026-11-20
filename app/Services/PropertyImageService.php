@@ -7,6 +7,7 @@ use App\Models\AssetImage;
 use App\Models\Image;
 use GdImage;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 class PropertyImageService
@@ -27,10 +28,11 @@ class PropertyImageService
 
         $directory = Asset::picDirectory($asset->id);
         $agentCode = (string) $agent->code;
+        $seq = $this->nextSeq($asset);
 
         $filename = $this->imageUpload->storeWithProcessor(
             $file,
-            $this->uploadOptions($asset),
+            $this->uploadOptions($asset, $seq),
             fn (GdImage $image): GdImage => $this->applyCopyrightWatermark(
                 $image,
                 $agentCode,
@@ -56,7 +58,7 @@ class PropertyImageService
             'asset_id' => $asset->id,
             'image_id' => $image->id,
             'isdefault' => $hasDefault ? 'N' : 'Y',
-            'seq' => $this->nextSeq($asset),
+            'seq' => $seq,
             'created' => now(),
         ]);
 
@@ -370,6 +372,84 @@ class PropertyImageService
         $next->update(['isdefault' => 'Y']);
     }
 
+    /**
+     * Rename all managed property images to code-slug-seq.webp after code/slug changes.
+     */
+    public function renameAllForAsset(Asset $asset): void
+    {
+        $asset->loadMissing('asset_images.image');
+
+        $directory = Asset::picDirectory($asset->id);
+        $absoluteDirectory = public_path($directory);
+
+        if (! is_dir($absoluteDirectory)) {
+            return;
+        }
+
+        foreach ($asset->asset_images->sortBy('seq')->values() as $index => $assetImage) {
+            $image = $assetImage->image;
+
+            if ($image === null || ! $this->isManagedPath($image->img_path, $asset->id)) {
+                continue;
+            }
+
+            $oldFilename = basename((string) $image->img_path);
+            $oldPath = $absoluteDirectory.DIRECTORY_SEPARATOR.$oldFilename;
+
+            if (! is_file($oldPath)) {
+                continue;
+            }
+
+            $seq = (int) ($assetImage->seq ?: ($index + 1));
+            $newFilename = $this->buildFilename($asset, $seq);
+            $newPath = $absoluteDirectory.DIRECTORY_SEPARATOR.$newFilename;
+
+            if ($oldFilename === $newFilename) {
+                continue;
+            }
+
+            if (is_file($newPath)) {
+                $newFilename = $this->buildFilename($asset, $seq, uniqueSuffix: true);
+                $newPath = $absoluteDirectory.DIRECTORY_SEPARATOR.$newFilename;
+            }
+
+            if (! @rename($oldPath, $newPath)) {
+                continue;
+            }
+
+            $image->update([
+                'name' => $newFilename,
+                'img_path' => $directory.'/'.$newFilename,
+            ]);
+
+            $this->imageProxy->invalidate($image);
+            $this->imageProxy->warmAllVariants($image, 'property_rename');
+        }
+    }
+
+    public function buildFilename(Asset $asset, int $seq, bool $uniqueSuffix = false): string
+    {
+        $code = $this->sanitizeFilenamePart((string) $asset->code) ?: 'property';
+        $slug = $this->sanitizeFilenamePart((string) ($asset->slug ?: $asset->resolvedSlug())) ?: 'image';
+        $base = sprintf('%s-%s-%02d', $code, $slug, max(1, $seq));
+
+        if ($uniqueSuffix) {
+            $base .= '-'.Str::lower(Str::random(4));
+        }
+
+        return $base.'.webp';
+    }
+
+    private function sanitizeFilenamePart(string $value): string
+    {
+        $value = trim($value);
+        $value = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '-', $value);
+        $value = (string) preg_replace('/\s+/u', '-', $value);
+        $value = (string) preg_replace('/-+/u', '-', $value);
+
+        return trim($value, '-.');
+    }
+
     private function nextSeq(Asset $asset): int
     {
         $max = AssetImage::query()
@@ -391,13 +471,16 @@ class PropertyImageService
             || str_starts_with($path, '/'.$prefix);
     }
 
-    private function uploadOptions(Asset $asset): ImageUploadOptions
+    private function uploadOptions(Asset $asset, ?int $seq = null): ImageUploadOptions
     {
+        $seq ??= $this->nextSeq($asset);
+
         return new ImageUploadOptions(
             directory: Asset::picDirectory($asset->id),
             quality: 85,
             maxWidth: 1000,
             maxHeight: 1000,
+            filename: $this->buildFilename($asset, $seq),
         );
     }
 }

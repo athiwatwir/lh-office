@@ -33,10 +33,48 @@ $ynFields = [
                 @error('asset_type_id')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
             </div>
 
-            <div class="md:col-span-2">
-                <label for="name" class="mb-1.5 block text-theme-sm font-medium text-gray-700">ชื่อทรัพย์ <span class="text-error-500">*</span></label>
-                <input id="name" type="text" name="name" value="{{ old('name', $item->name) }}" required class="{{ $inputClass }} @error('name') border-error-500 @enderror" />
-                @error('name')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
+            <div class="md:col-span-2 space-y-5" x-data="{
+                    slug: @js(old('slug', $item->slug ?? '')),
+                    buildSlug() {
+                        const ids = ['address_street', 'address_soi', 'address_address1', 'address_amphur'];
+                        const parts = ids
+                            .map((id) => (document.getElementById(id)?.value || '').trim())
+                            .filter(Boolean)
+                            .map((part) => part
+                                .replace(/[^\p{L}\p{M}\p{N}]+/gu, '-')
+                                .replace(/^-+|-+$/g, ''))
+                            .filter(Boolean);
+
+                        return parts.join('-').replace(/-+/g, '-');
+                    },
+                    syncSlug() {
+                        if ((this.slug || '').trim() !== '') {
+                            return;
+                        }
+
+                        this.slug = this.buildSlug();
+                    },
+                }" x-init="
+                    ['address_street', 'address_soi', 'address_address1', 'address_amphur'].forEach((id) => {
+                        const el = document.getElementById(id);
+                        if (! el) return;
+                        el.addEventListener('input', () => syncSlug());
+                        el.addEventListener('change', () => syncSlug());
+                    });
+                    syncSlug();
+                ">
+                <div>
+                    <label for="name" class="mb-1.5 block text-theme-sm font-medium text-gray-700">ชื่อทรัพย์ <span class="text-error-500">*</span></label>
+                    <input id="name" type="text" name="name" value="{{ old('name', $item->name) }}" required class="{{ $inputClass }} @error('name') border-error-500 @enderror" />
+                    @error('name')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="slug" class="mb-1.5 block text-theme-sm font-medium text-gray-700">Slug</label>
+                    <input id="slug" type="text" name="slug" x-model="slug" placeholder="เช่น ถนน-ซอย-หมู่บ้าน-อำเภอ" class="{{ $inputClass }} @error('slug') border-error-500 @enderror" />
+                    <p class="mt-1.5 text-theme-xs text-gray-500">ถ้าว่าง ระบบจะเติมจากถนน ซอย หมู่บ้าน อำเภอให้อัตโนมัติ (ไม่ใช้ตำบล จังหวัด)</p>
+                    @error('slug')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
+                </div>
             </div>
 
             <div class="md:col-span-2" x-data="{

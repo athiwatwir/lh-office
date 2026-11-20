@@ -117,6 +117,28 @@ class Image extends Model
         return app(ImageProxyService::class)->publicCacheUrl($this, ImageProxyService::VARIANT_GALLERY, $absolute);
     }
 
+    /**
+     * Original source image URL (not img-cache thumb/gallery).
+     */
+    public function masterUrl(bool $absolute = false): ?string
+    {
+        if (blank($this->img_path)) {
+            return null;
+        }
+
+        if (str_starts_with($this->img_path, 'http://') || str_starts_with($this->img_path, 'https://')) {
+            return $this->img_path;
+        }
+
+        $relative = '/'.ltrim(str_replace('\\', '/', $this->img_path), '/');
+
+        if (app(ImageProxyService::class)->resolveSourceFilePath($this->img_path) !== null) {
+            return $absolute ? url($relative) : $relative;
+        }
+
+        return self::resolveLegacyUrl($this->img_path);
+    }
+
     public static function resolveLegacyUrl(?string $path): ?string
     {
         if (blank($path)) {

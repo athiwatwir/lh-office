@@ -20,6 +20,7 @@ use Illuminate\Support\Str;
  * @property string $name
  * @property string|null $code
  * @property string|null $logo
+ * @property string|null $frontend_url
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
@@ -42,7 +43,8 @@ class Agent extends Model
         'code',
         'logo',
         'api_key',
-        'system_type'
+        'system_type',
+        'frontend_url',
     ];
 
     public function assets()
@@ -79,5 +81,16 @@ class Agent extends Model
         $localUrl = app(ImageUploadService::class)->url($this->logo, self::LOGO_DIRECTORY);
 
         return $localUrl ?? Image::resolveLegacyUrl($this->logo);
+    }
+
+    public function setFrontendUrlAttribute(?string $value): void
+    {
+        if (blank($value)) {
+            $this->attributes['frontend_url'] = null;
+
+            return;
+        }
+
+        $this->attributes['frontend_url'] = rtrim(trim($value), '/');
     }
 }

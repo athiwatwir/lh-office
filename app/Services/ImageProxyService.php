@@ -31,7 +31,12 @@ class ImageProxyService
 
     public function publicCachePath(Image $image, string $variant): string
     {
-        return $this->publicCacheDirectory().DIRECTORY_SEPARATOR.$this->publicCacheFilename($image, $variant);
+        return $this->publicCachePathFor((string) $image->id, $variant);
+    }
+
+    public function publicCachePathFor(string $imageId, string $variant): string
+    {
+        return $this->publicCacheDirectory().DIRECTORY_SEPARATOR.sprintf('%s_%s.webp', $imageId, $variant);
     }
 
     public function publicCacheUrl(Image $image, string $variant, bool $absolute = false): ?string
@@ -214,6 +219,7 @@ class ImageProxyService
         return [
             'Content-Type' => 'image/webp',
             'Cache-Control' => 'public, max-age=31536000, immutable',
+            'X-Content-Type-Options' => 'nosniff',
         ];
     }
 
@@ -474,6 +480,7 @@ class ImageProxyService
         }
 
         $image = $this->resize($image, $width, $height);
+        $image = $this->ensureTrueColor($image);
         $this->preserveAlpha($image);
 
         ob_start();
@@ -545,6 +552,30 @@ class ImageProxyService
         }
 
         return [max(1, $width), max(1, $height)];
+    }
+
+    /**
+     * WebP via GD requires a truecolor image; palette PNG/GIF would fail with
+     * "Palette image not supported by webp".
+     */
+    private function ensureTrueColor(GdImage $image): GdImage
+    {
+        if (imageistruecolor($image)) {
+            return $image;
+        }
+
+        if (function_exists('imagepalettetotruecolor') && @imagepalettetotruecolor($image)) {
+            return $image;
+        }
+
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $trueColor = imagecreatetruecolor($width, $height);
+        $this->preserveAlpha($trueColor);
+        imagecopy($trueColor, $image, 0, 0, 0, 0, $width, $height);
+        imagedestroy($image);
+
+        return $trueColor;
     }
 
     private function preserveAlpha(GdImage $image): void

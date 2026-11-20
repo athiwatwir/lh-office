@@ -22,6 +22,7 @@ class PropertyDetailResource extends JsonResource
             'id' => $this->id,
             'code' => $this->code,
             'name' => $this->name,
+            'slug' => $this->resolvedSlug(),
             'description' => $this->description,
             'asset_type' => $this->whenLoaded('asset_type', fn() => [
                 'id' => $this->asset_type?->id,

@@ -18,6 +18,7 @@ use App\Services\ActiveAgentService;
 use App\Services\PropertyAddressService;
 use App\Services\PropertyCopyService;
 use App\Services\PropertyDeletionService;
+use App\Services\PropertyImageService;
 use App\Services\PropertyProfileTransferService;
 use App\Services\PropertyTagService;
 use App\Services\SiteConfigService;
@@ -34,6 +35,7 @@ class PropertyController extends Controller
         private readonly ActiveAgentService $activeAgent,
         private readonly PropertyAddressService $addressService,
         private readonly PropertyTagService $tagService,
+        private readonly PropertyImageService $propertyImages,
         private readonly SiteConfigService $siteConfig,
     ) {}
 
@@ -46,7 +48,7 @@ class PropertyController extends Controller
             ->forList()
             ->withCount('asset_images')
             ->with([
-                'asset_type:id,name',
+                'asset_type:id,name,code',
                 'zone:id,name',
                 'user:id,firstname,lastname',
             ])
@@ -156,6 +158,7 @@ class PropertyController extends Controller
         ]);
 
         $this->tagService->sync($item, $request->input('tag_names'));
+        $this->propertyImages->renameAllForAsset($item->fresh(['asset_images.image']));
 
         return redirect()
             ->route('property.edit', $item)

@@ -41,6 +41,7 @@ class PropertyListResource extends JsonResource
             ]),
             'price_amount' => $this->price_amounnt,
             'price_special' => $this->price_special,
+            'price_per_wah' => $this->price_per_wah,
             'price_rent' => $this->price_rent,
             'is_special_price' => $this->isspecial_marketprice === 'Y',
             'listing' => [
@@ -61,35 +62,8 @@ class PropertyListResource extends JsonResource
             'thumbnail_url' => $this->apiImageUrl($defaultImage?->image?->thumbnailUrl(absolute: false)),
             'image_path' => $defaultImage?->image?->img_path,
             'images_count' => $this->whenCounted('asset_images'),
-            'slug' => $this->addressSlug(),
+            'slug' => $this->resolvedSlug(),
             //'created_at' => $createdAt?->toIso8601String(),
         ];
-    }
-
-    private function addressSlug(): ?string
-    {
-        if ($this->address === null) {
-            return null;
-        }
-
-        $parts = array_values(array_filter([
-            $this->address->street,
-            $this->address->soi,
-            $this->address->address1,
-        ], filled(...)));
-
-        if ($parts === []) {
-            return null;
-        }
-
-        $slug = implode('-', array_values(array_filter(
-            array_map(
-                static fn(string $part): string => (string) preg_replace('/[^\p{L}\p{N}]+/u', '', trim($part)),
-                $parts,
-            ),
-            filled(...),
-        )));
-
-        return $slug !== '' ? $slug : null;
     }
 }

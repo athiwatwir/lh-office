@@ -177,7 +177,7 @@ class PropertyController extends Controller
             'agent:id,name,code',
             'zone:id,name',
             'user:id,firstname,lastname,phone',
-            'address:id,amphur,address1,soi,street',
+            'address:id,amphur,address1,soi,street,district,province',
             'asset_images' => fn($query) => $query
                 ->orderByRaw("CASE WHEN isdefault = 'Y' THEN 0 ELSE 1 END")
                 ->orderBy('seq')

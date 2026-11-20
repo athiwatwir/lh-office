@@ -41,6 +41,7 @@ class PropertyRequest extends FormRequest
                     ->ignore($propertyId),
             ],
             'name' => ['required', 'string', 'max:255'],
+            'slug' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string'],
             'asset_type_id' => [
                 'required',
@@ -109,6 +110,7 @@ class PropertyRequest extends FormRequest
         return [
             'code' => 'รหัสทรัพย์',
             'name' => 'ชื่อทรัพย์',
+            'slug' => 'Slug',
             'description' => 'รายละเอียด',
             'asset_type_id' => 'ประเภททรัพย์',
             'zone_id' => 'โซน',
@@ -177,6 +179,7 @@ class PropertyRequest extends FormRequest
         $fields = [
             'code',
             'name',
+            'slug',
             'description',
             'asset_type_id',
             'user_id',

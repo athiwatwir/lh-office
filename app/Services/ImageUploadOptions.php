@@ -10,5 +10,6 @@ readonly class ImageUploadOptions
         public ?int $maxWidth = null,
         public ?int $maxHeight = null,
         public bool $maintainAspectRatio = true,
+        public ?string $filename = null,
     ) {}
 }

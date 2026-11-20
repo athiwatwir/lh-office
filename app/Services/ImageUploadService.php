@@ -20,12 +20,13 @@ class ImageUploadService
 
         $image = $this->createImageResource($file);
         $image = $this->applyResize($image, $options);
+        $image = $this->ensureTrueColor($image);
         $this->preserveAlpha($image);
 
         $directory = $this->normalizeDirectory($options->directory);
         File::ensureDirectoryExists($directory);
 
-        $filename = $this->generateFilename();
+        $filename = $this->resolveFilename($directory, $options->filename);
         $path = $directory.DIRECTORY_SEPARATOR.$filename;
 
         if (! imagewebp($image, $path, $this->normalizeQuality($options->quality))) {
@@ -95,12 +96,13 @@ class ImageUploadService
             $image = $processor($image) ?? $image;
         }
 
+        $image = $this->ensureTrueColor($image);
         $this->preserveAlpha($image);
 
         $directory = $this->normalizeDirectory($options->directory);
         File::ensureDirectoryExists($directory);
 
-        $filename = $this->generateFilename();
+        $filename = $this->resolveFilename($directory, $options->filename);
         $path = $directory.DIRECTORY_SEPARATOR.$filename;
 
         if (! imagewebp($image, $path, $this->normalizeQuality($options->quality))) {
@@ -216,10 +218,72 @@ class ImageUploadService
         return [$width, $height];
     }
 
+    /**
+     * WebP via GD requires a truecolor image; palette PNG/GIF would fail with
+     * "Palette image not supported by webp".
+     */
+    private function ensureTrueColor(GdImage $image): GdImage
+    {
+        if (imageistruecolor($image)) {
+            return $image;
+        }
+
+        if (function_exists('imagepalettetotruecolor') && @imagepalettetotruecolor($image)) {
+            return $image;
+        }
+
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $trueColor = imagecreatetruecolor($width, $height);
+        $this->preserveAlpha($trueColor);
+        imagecopy($trueColor, $image, 0, 0, 0, 0, $width, $height);
+        imagedestroy($image);
+
+        return $trueColor;
+    }
+
     private function preserveAlpha(GdImage $image): void
     {
         imagealphablending($image, false);
         imagesavealpha($image, true);
+    }
+
+    private function resolveFilename(string $directory, ?string $preferred): string
+    {
+        $filename = filled($preferred)
+            ? $this->normalizePreferredFilename($preferred)
+            : $this->generateFilename();
+
+        if (! is_file($directory.DIRECTORY_SEPARATOR.$filename)) {
+            return $filename;
+        }
+
+        $base = pathinfo($filename, PATHINFO_FILENAME);
+        $extension = pathinfo($filename, PATHINFO_EXTENSION) ?: 'webp';
+        $suffix = 2;
+
+        do {
+            $candidate = sprintf('%s-%d.%s', $base, $suffix, $extension);
+            $suffix++;
+        } while (is_file($directory.DIRECTORY_SEPARATOR.$candidate));
+
+        return $candidate;
+    }
+
+    private function normalizePreferredFilename(string $filename): string
+    {
+        $filename = basename(str_replace(['\\', '/'], '-', $filename));
+        $filename = trim($filename);
+
+        if ($filename === '') {
+            return $this->generateFilename();
+        }
+
+        if (! str_ends_with(Str::lower($filename), '.webp')) {
+            $filename .= '.webp';
+        }
+
+        return $filename;
     }
 
     private function generateFilename(): string

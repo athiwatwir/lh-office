@@ -116,6 +116,7 @@ class Asset extends Model
     protected $fillable = [
         'code',
         'name',
+        'slug',
         'description',
         'asset_type_id',
         'asset_type_des',
@@ -167,6 +168,100 @@ class Asset extends Model
     public function address()
     {
         return $this->belongsTo(Address::class);
+    }
+
+    /**
+     * Prefer stored slug; otherwise build from address fields.
+     */
+    public function resolvedSlug(): string
+    {
+        if (filled($this->slug)) {
+            return (string) $this->slug;
+        }
+
+        if (! $this->relationLoaded('address')) {
+            $this->loadMissing('address');
+        }
+
+        $address = $this->address;
+
+        if ($address === null) {
+            return 'แหล่งรับฝาก-ขายบ้าน-ที่ดิน';
+        }
+
+        $parts = array_values(array_filter([
+            $address->street,
+            $address->soi,
+            $address->address1,
+            $address->amphur,
+        ], filled(...)));
+
+        if ($parts === []) {
+            return 'แหล่งรับฝาก-ขายบ้าน-ที่ดิน';
+        }
+
+        $slug = implode('-', array_map(
+            static fn (string $part): string => self::slugifySegment($part),
+            $parts,
+        ));
+
+        $slug = trim((string) preg_replace('/-+/u', '-', $slug), '-');
+
+        return $slug !== '' ? $slug : 'แหล่งรับฝาก-ขายบ้าน-ที่ดิน';
+    }
+
+    /**
+     * Public frontend detail URL:
+     * {frontend_url}/p/{propertyTypeCode}/{propertyCode}
+     */
+    public function frontendUrl(?string $baseUrl = null): ?string
+    {
+        $base = rtrim((string) ($baseUrl
+            ?? $this->agent?->frontend_url
+            ?? ''), '/');
+
+        if ($base === '') {
+            return null;
+        }
+
+        if (! $this->relationLoaded('asset_type')) {
+            $this->loadMissing('asset_type');
+        }
+
+        $typeCode = trim((string) ($this->asset_type?->code ?? ''));
+        $typeSegment = $typeCode !== ''
+            ? self::normalizeTypeSegment($typeCode)
+            : '';
+
+        $propertyCode = trim((string) ($this->code ?? ''));
+
+        if ($typeSegment === '' || $propertyCode === '') {
+            return null;
+        }
+
+        return "{$base}/p/{$typeSegment}/{$propertyCode}";
+    }
+
+    /**
+     * Same rules as lh-lovethaihome PropertyData::normalizeTypeSegment.
+     */
+    public static function normalizeTypeSegment(string $value): string
+    {
+        $value = rawurldecode(trim($value));
+        $value = str_replace(['/', '\\'], '-', $value);
+        $value = (string) preg_replace('/\s+/u', '-', $value);
+        $value = (string) preg_replace('/-+/u', '-', $value);
+
+        return trim($value, '-');
+    }
+
+    public static function slugifySegment(string $value): string
+    {
+        $value = trim($value);
+        $value = (string) preg_replace('/[^\p{L}\p{M}\p{N}]+/u', '-', $value);
+        $value = trim((string) preg_replace('/-+/u', '-', $value), '-');
+
+        return $value;
     }
 
     public function user()

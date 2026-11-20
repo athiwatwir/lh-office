@@ -262,7 +262,40 @@
                             <x-ui.date-time-display :datetime="$createdAt" />
                         </td>
                         <td class="px-3 py-2">
-                            <x-property.row-actions :property="$item" :agents="$officeAgents" />
+                            <div class="flex items-center justify-end gap-1.5">
+                                @php $frontendUrl = $item->frontendUrl($activeAgent?->frontend_url); @endphp
+                                @if ($frontendUrl)
+                                <a
+                                    href="{{ $frontendUrl }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="เปิดดูรายละเอียดบนเว็บจริง"
+                                    class="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-success-200 bg-success-50 px-3 text-theme-sm font-medium text-success-700 shadow-theme-xs transition hover:border-success-300 hover:bg-success-100 hover:text-success-800"
+                                >
+                                    <i class="lni lni-exit text-base" aria-hidden="true"></i>
+                                    <span>เปิดเว็บ</span>
+                                </a>
+                                @else
+                                <button
+                                    type="button"
+                                    disabled
+                                    title="ตั้งค่า Frontend URL / รหัสประเภท / รหัสทรัพย์ ให้ครบก่อน"
+                                    class="inline-flex h-9 cursor-not-allowed items-center justify-center gap-1.5 rounded-lg border border-success-200 bg-success-50 px-3 text-theme-sm font-medium text-success-700 opacity-50 shadow-theme-xs"
+                                >
+                                    <i class="lni lni-exit text-base" aria-hidden="true"></i>
+                                    <span>เปิดเว็บ</span>
+                                </button>
+                                @endif
+                                <a
+                                    href="{{ route('property.edit', $item) }}"
+                                    title="แก้ไขทรัพย์สิน"
+                                    class="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 text-theme-sm font-medium text-brand-700 shadow-theme-xs transition hover:border-brand-300 hover:bg-brand-100 hover:text-brand-800"
+                                >
+                                    <i class="lni lni-pencil text-base" aria-hidden="true"></i>
+                                    <span>แก้ไข</span>
+                                </a>
+                                <x-property.row-actions :property="$item" :agents="$officeAgents" />
+                            </div>
                         </td>
                     </tr>
                     @endforeach

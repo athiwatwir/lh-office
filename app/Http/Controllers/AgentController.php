@@ -44,6 +44,7 @@ class AgentController extends Controller
             'name' => $request->validated('name'),
             'code' => $request->validated('code'),
             'api_key' => $request->validated('api_key'),
+            'frontend_url' => $request->validated('frontend_url'),
             'logo' => $this->resolveUploadedLogo($request),
         ]);
 
@@ -72,6 +73,7 @@ class AgentController extends Controller
             'name' => $request->validated('name'),
             'code' => $request->validated('code'),
             'api_key' => $request->validated('api_key'),
+            'frontend_url' => $request->validated('frontend_url'),
         ];
 
         if ($request->hasFile('logo')) {

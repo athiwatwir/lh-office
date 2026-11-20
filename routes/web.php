@@ -2,8 +2,6 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EditorImageController;
-use App\Http\Controllers\ImageCacheController;
-use App\Http\Controllers\ImageProxyController;
 use App\Http\Controllers\ActiveAgentController;
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\ProfileController;
@@ -20,12 +18,6 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-
-Route::get('/img-cache/{image}_{variant}.webp', [ImageCacheController::class, 'show'])
-    ->where('variant', 'thumb|gallery')
-    ->name('image.cache');
-
-Route::get('/img/{image}', [ImageProxyController::class, 'show'])->name('image.proxy');
 
 Route::get('/', function () {
     return Auth::check()

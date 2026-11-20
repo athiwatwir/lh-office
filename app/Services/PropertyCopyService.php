@@ -8,7 +8,6 @@ use App\Models\AssetImage;
 use App\Models\Image;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 use RuntimeException;
 
 class PropertyCopyService
@@ -32,6 +31,7 @@ class PropertyCopyService
     public function __construct(
         private readonly ImageProxyService $imageProxy,
         private readonly PropertyProfileTransferService $profileTransfer,
+        private readonly PropertyImageService $propertyImages,
     ) {}
 
     public function copyToAgent(Asset $source, string $targetAgentId, string $targetAssetTypeId, ?string $createdBy = null): Asset
@@ -136,11 +136,18 @@ class PropertyCopyService
                 continue;
             }
 
-            $extension = pathinfo($sourcePath, PATHINFO_EXTENSION) ?: 'webp';
-            $filename = Str::uuid()->toString().'.'.$extension;
+            $seq = (int) ($assetImage->seq ?: 1);
+            $filename = $this->propertyImages->buildFilename($copy, $seq);
+            $targetFile = $targetPath.DIRECTORY_SEPARATOR.$filename;
+
+            if (is_file($targetFile)) {
+                $filename = $this->propertyImages->buildFilename($copy, $seq, uniqueSuffix: true);
+                $targetFile = $targetPath.DIRECTORY_SEPARATOR.$filename;
+            }
+
             $relativePath = $targetDirectory.'/'.$filename;
 
-            if (! copy($sourcePath, $targetPath.DIRECTORY_SEPARATOR.$filename)) {
+            if (! copy($sourcePath, $targetFile)) {
                 continue;
             }
 

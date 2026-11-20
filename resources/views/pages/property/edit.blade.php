@@ -15,7 +15,7 @@
 @endsection
 
 @push('styles')
-    <link rel="stylesheet" href="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.css">
+    <link rel="stylesheet" href="{{ asset('vendor/jquery.Thailand.js/dist/jquery.Thailand.min.css') }}">
     <style>
         .twitter-typeahead { width: 100%; }
         .tt-menu { z-index: 50 !important; }
@@ -25,9 +25,9 @@
 @push('scripts')
     @vite(['resources/js/components/wysiwyg-editor.js', 'resources/js/components/property-location.js'])
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/JQL.min.js"></script>
-    <script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/typeahead.bundle.js"></script>
-    <script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.js"></script>
+    <script src="{{ asset('vendor/jquery.Thailand.js/dependencies/JQL.min.js') }}"></script>
+    <script src="{{ asset('vendor/jquery.Thailand.js/dependencies/typeahead.bundle.js') }}"></script>
+    <script src="{{ asset('vendor/jquery.Thailand.js/dist/jquery.Thailand.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             if (typeof $.Thailand !== 'function') {
@@ -35,6 +35,7 @@
             }
 
             $.Thailand({
+                database: @js(asset('vendor/jquery.Thailand.js/database/db.json')),
                 $district: $('#address_district'),
                 $amphoe: $('#address_amphur'),
                 $province: $('#address_province'),

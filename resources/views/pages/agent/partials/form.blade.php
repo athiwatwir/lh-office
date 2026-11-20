@@ -48,6 +48,22 @@ $fileClass = 'focus:border-ring-brand-300 shadow-theme-xs focus:file:ring-brand-
         @enderror
     </div>
 
+    <div class="md:col-span-2">
+        <label for="frontend_url" class="mb-1.5 block text-theme-sm font-medium text-gray-700">Frontend URL</label>
+        <input
+            id="frontend_url"
+            type="url"
+            name="frontend_url"
+            value="{{ old('frontend_url', $item->frontend_url) }}"
+            placeholder="https://lovethaihome.com"
+            class="{{ $inputClass }} @error('frontend_url') border-error-500 @enderror"
+        />
+        <p class="mt-1.5 text-theme-xs text-gray-500">ใช้เป็นฐานของปุ่ม Copy URL เช่น https://lovethaihome.com</p>
+        @error('frontend_url')
+        <p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>
+        @enderror
+    </div>
+
     <div class="md:col-span-2 grid grid-cols-1 gap-5 md:grid-cols-2 md:items-start">
         <div>
             <label for="logo" class="mb-1.5 block text-theme-sm font-medium text-gray-700">โลโก้</label>

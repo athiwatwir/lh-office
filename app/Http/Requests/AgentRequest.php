@@ -30,6 +30,7 @@ class AgentRequest extends FormRequest
             ],
             'logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:5120'],
             'api_key' => ['nullable', 'string', 'max:64'],
+            'frontend_url' => ['nullable', 'string', 'max:255', 'url'],
         ];
     }
 
@@ -43,17 +44,25 @@ class AgentRequest extends FormRequest
             'code' => 'รหัส',
             'logo' => 'โลโก้',
             'api_key' => 'API Key',
+            'frontend_url' => 'Frontend URL',
         ];
     }
 
     protected function prepareForValidation(): void
     {
-        if (! $this->filled('code')) {
-            return;
+        $payload = [];
+
+        if ($this->filled('code')) {
+            $payload['code'] = Str::upper(trim((string) $this->input('code')));
         }
 
-        $this->merge([
-            'code' => Str::upper(trim((string) $this->input('code'))),
-        ]);
+        if ($this->exists('frontend_url')) {
+            $frontendUrl = trim((string) $this->input('frontend_url'));
+            $payload['frontend_url'] = $frontendUrl === '' ? null : rtrim($frontendUrl, '/');
+        }
+
+        if ($payload !== []) {
+            $this->merge($payload);
+        }
     }
 }

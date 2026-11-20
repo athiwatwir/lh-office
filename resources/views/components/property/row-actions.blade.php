@@ -389,38 +389,46 @@
     }">
     <x-common.table-dropdown menu-width="min-w-44">
         <x-slot name="button">
-            <button type="button" aria-haspopup="true" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 transition hover:bg-gray-50 hover:text-gray-700">
-                <svg class="size-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <button
+                type="button"
+                aria-haspopup="true"
+                title="เมนูเพิ่มเติม"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-theme-xs transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800"
+            >
+                <svg class="size-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path fill-rule="evenodd" clip-rule="evenodd" d="M5.99902 10.245C6.96552 10.245 7.74902 11.0285 7.74902 11.995V12.005C7.74902 12.9715 6.96552 13.755 5.99902 13.755C5.03253 13.755 4.24902 12.9715 4.24902 12.005V11.995C4.24902 11.0285 5.03253 10.245 5.99902 10.245ZM17.999 10.245C18.9655 10.245 19.749 11.0285 19.749 11.995V12.005C19.749 12.9715 18.9655 13.755 17.999 13.755C17.0325 13.755 16.249 12.9715 16.249 12.005V11.995C16.249 11.0285 17.0325 10.245 17.999 10.245ZM13.749 11.995C13.749 11.0285 12.9655 10.245 11.999 10.245C11.0325 10.245 10.249 11.0285 10.249 11.995V12.005C10.249 12.9715 11.0325 13.755 11.999 13.755C12.9655 13.755 13.749 12.9715 13.749 12.005V11.995Z" />
                 </svg>
             </button>
         </x-slot>
 
         <x-slot name="content">
-            <a href="{{ route('property.edit', $property) }}" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-theme-xs font-medium text-gray-700 hover:bg-gray-100" role="menuitem">
-                <i class="lni lni-pencil text-base text-gray-500"></i>
-                แก้ไข
-            </a>
-
-            <button type="button" @click="openRecommendConfirm()" :disabled="loading" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-theme-xs font-medium text-gray-700 hover:bg-gray-100" role="menuitem">
-                <span class="inline-flex text-base" :class="isRecommended ? 'text-warning-500' : 'text-gray-500'">
-                    <i class="lni lni-star-fat" aria-hidden="true"></i>
+            <button type="button" @click="openRecommendConfirm()" :disabled="loading" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-theme-xs font-medium transition hover:bg-warning-50" :class="isRecommended ? 'text-warning-700' : 'text-gray-700'" role="menuitem">
+                <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md" :class="isRecommended ? 'bg-warning-100 text-warning-600' : 'bg-gray-100 text-gray-500'">
+                    <i class="lni lni-star-fat text-base" aria-hidden="true"></i>
                 </span>
                 <span x-text="isRecommended ? 'ยกเลิกทรัพย์แนะนำ' : 'ตั้งเป็นทรัพย์แนะนำ'"></span>
             </button>
 
-            <button type="button" @click="openMove()" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-theme-xs font-medium text-gray-700 hover:bg-gray-100" role="menuitem">
-                <i class="lni lni-arrow-right text-base text-gray-500"></i>
+            <button type="button" @click="openMove()" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-theme-xs font-medium text-gray-700 transition hover:bg-brand-50" role="menuitem">
+                <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand-600">
+                    <i class="lni lni-arrow-right text-base" aria-hidden="true"></i>
+                </span>
                 ย้าย Agent
             </button>
 
-            <button type="button" @click="openCopy()" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-theme-xs font-medium text-gray-700 hover:bg-gray-100" role="menuitem">
-                <i class="lni lni-copy text-base text-gray-500"></i>
+            <button type="button" @click="openCopy()" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-theme-xs font-medium text-gray-700 transition hover:bg-success-50" role="menuitem">
+                <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-success-50 text-success-600">
+                    <i class="lni lni-copy text-base" aria-hidden="true"></i>
+                </span>
                 คัดลอกไป Agent อื่น
             </button>
 
-            <button type="button" @click="openDelete()" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-theme-xs font-medium text-error-600 hover:bg-error-50" role="menuitem">
-                <i class="lni lni-trash-can text-base"></i>
+            <div class="my-1 border-t border-gray-100"></div>
+
+            <button type="button" @click="openDelete()" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-theme-xs font-medium text-error-600 transition hover:bg-error-50" role="menuitem">
+                <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-error-50 text-error-600">
+                    <i class="lni lni-trash-can text-base" aria-hidden="true"></i>
+                </span>
                 ลบ
             </button>
         </x-slot>
