@@ -35,6 +35,7 @@ $ynFields = [
 
             <div class="md:col-span-2 space-y-5" x-data="{
                     slug: @js(old('slug', $item->slug ?? '')),
+                    slugManual: @js(filled(old('slug', $item->slug ?? ''))),
                     buildSlug() {
                         const ids = ['address_street', 'address_soi', 'address_address1', 'address_amphur'];
                         const parts = ids
@@ -48,19 +49,36 @@ $ynFields = [
                         return parts.join('-').replace(/-+/g, '-');
                     },
                     syncSlug() {
-                        if ((this.slug || '').trim() !== '') {
+                        if (this.slugManual) {
                             return;
                         }
 
                         this.slug = this.buildSlug();
                     },
+                    onSlugInput() {
+                        if ((this.slug || '').trim() === '') {
+                            this.slugManual = false;
+                            this.syncSlug();
+                            return;
+                        }
+
+                        this.slugManual = true;
+                    },
+                    bindAddressSlugSync() {
+                        const ids = ['address_street', 'address_soi', 'address_address1', 'address_amphur'];
+                        const handler = () => this.syncSlug();
+
+                        ids.forEach((id) => {
+                            const el = document.getElementById(id);
+                            if (! el) return;
+                            el.addEventListener('input', handler);
+                            el.addEventListener('change', handler);
+                        });
+
+                        window.addEventListener('property-address-filled', handler);
+                    },
                 }" x-init="
-                    ['address_street', 'address_soi', 'address_address1', 'address_amphur'].forEach((id) => {
-                        const el = document.getElementById(id);
-                        if (! el) return;
-                        el.addEventListener('input', () => syncSlug());
-                        el.addEventListener('change', () => syncSlug());
-                    });
+                    bindAddressSlugSync();
                     syncSlug();
                 ">
                 <div>
@@ -71,7 +89,7 @@ $ynFields = [
 
                 <div>
                     <label for="slug" class="mb-1.5 block text-theme-sm font-medium text-gray-700">Slug</label>
-                    <input id="slug" type="text" name="slug" x-model="slug" placeholder="เช่น ถนน-ซอย-หมู่บ้าน-อำเภอ" class="{{ $inputClass }} @error('slug') border-error-500 @enderror" />
+                    <input id="slug" type="text" name="slug" x-model="slug" @input="onSlugInput()" placeholder="เช่น ถนน-ซอย-หมู่บ้าน-อำเภอ" class="{{ $inputClass }} @error('slug') border-error-500 @enderror" />
                     <p class="mt-1.5 text-theme-xs text-gray-500">ถ้าว่าง ระบบจะเติมจากถนน ซอย หมู่บ้าน อำเภอให้อัตโนมัติ (ไม่ใช้ตำบล จังหวัด)</p>
                     @error('slug')<p class="mt-1 text-theme-xs text-error-500">{{ $message }}</p>@enderror
                 </div>

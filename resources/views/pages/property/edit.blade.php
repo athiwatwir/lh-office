@@ -40,6 +40,15 @@
                 $amphoe: $('#address_amphur'),
                 $province: $('#address_province'),
                 $zipcode: $('#address_zipcode'),
+                onDataFill: function () {
+                    ['address_district', 'address_amphur', 'address_province', 'address_zipcode'].forEach(function (id) {
+                        var el = document.getElementById(id);
+                        if (! el) return;
+                        el.dispatchEvent(new Event('input', { bubbles: true }));
+                        el.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                    window.dispatchEvent(new CustomEvent('property-address-filled'));
+                },
             });
         });
     </script>
